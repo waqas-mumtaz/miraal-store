@@ -51,6 +51,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    name: "Inventory",
+    icon: <BoxCubeIcon />,
+    subItems: [
+      { name: "Inventory List", path: "/inventory", pro: false },
+      { name: "Add Item", path: "/inventory/add", pro: false },
+    ],
+  },
+  {
     name: "Forms",
     icon: <ListIcon />,
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],

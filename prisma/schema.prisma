@@ -26,6 +26,8 @@ model User {
 
   // Relations
   expenses  Expense[]
+  inventoryItems InventoryItem[]
+  inventoryReplenishments InventoryReplenishment[]
 
   @@map("users")
 }
@@ -48,8 +50,56 @@ model Expense {
   // Relations
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Inventory replenishment relation
+  replenishments  InventoryReplenishment[]
 
   @@map("expenses")
+}
+
+// Inventory item model for tracking packaging and other inventory
+model InventoryItem {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  currentQuantity Int      @default(0)
+  unitCost        Decimal  @db.Decimal(10, 2)
+  linkedProducts  String?  // JSON array of product IDs
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replenishments  InventoryReplenishment[]
+
+  @@map("inventory_items")
+}
+
+// Inventory replenishment history
+model InventoryReplenishment {
+  id              String   @id @default(cuid())
+  quantity        Int
+  cost            Decimal  @db.Decimal(10, 2)
+  unitCost        Decimal  @db.Decimal(10, 2)
+  date            DateTime
+  invoiceLink     String?
+  comments        String?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional link to expense
+  expenseId       String?
+  expense         Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+
+  @@map("inventory_replenishments")
 }
 
 // Role enum
