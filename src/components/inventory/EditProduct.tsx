@@ -18,6 +18,7 @@ interface Product {
   type: string;
   linkedPackaging?: string;
   packagingCost: number;
+  miscCost: number;
   currentQuantity: number;
   unitCost: number;
   totalCOG: number;
@@ -50,6 +51,7 @@ export default function EditProduct() {
     type: "FBM",
     linkedPackaging: "",
     packagingCost: "0",
+    miscCost: "0.1",
     unitCost: "",
   });
   const [packagingOptions, setPackagingOptions] = useState<Packaging[]>([]);
@@ -105,6 +107,7 @@ export default function EditProduct() {
         type: data.product.type || "FBM",
         linkedPackaging: data.product.linkedPackaging || "",
         packagingCost: data.product.packagingCost?.toString() || "0",
+        miscCost: data.product.miscCost?.toString() || "0.1",
         unitCost: data.product.unitCost.toString(),
       });
     } catch (error) {
@@ -135,17 +138,22 @@ export default function EditProduct() {
       }
 
       // Auto-calculate unit cost when total cost or quantity changes
-      if (name === 'totalCost' || name === 'quantity' || name === 'linkedPackaging') {
+      if (name === 'totalCost' || name === 'quantity' || name === 'linkedPackaging' || name === 'miscCost') {
         const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(prev.totalCost);
         const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
         const packagingCost = name === 'linkedPackaging' ? 
           (value ? packagingOptions.find(p => p.id === value)?.unitCost || 0 : 0) : 
           parseFloat(prev.packagingCost);
+        const miscCost = name === 'miscCost' ? parseFloat(value) : parseFloat(prev.miscCost);
         
         if (quantity > 0 && totalCost > 0) {
-          if (prev.type === 'FBM' && packagingCost > 0) {
-            newData.unitCost = ((totalCost / quantity) + packagingCost).toFixed(2);
-            newData.packagingCost = packagingCost.toString();
+          if (prev.type === 'FBM') {
+            const baseUnitCost = totalCost / quantity;
+            const additionalCosts = packagingCost + miscCost;
+            newData.unitCost = (baseUnitCost + additionalCosts).toFixed(2);
+            if (name === 'linkedPackaging') {
+              newData.packagingCost = packagingCost.toString();
+            }
           } else {
             newData.unitCost = (totalCost / quantity).toFixed(2);
           }
@@ -226,6 +234,7 @@ export default function EditProduct() {
           type: formData.type,
           linkedPackaging: formData.linkedPackaging || null,
           packagingCost: parseFloat(formData.packagingCost),
+          miscCost: parseFloat(formData.miscCost),
           unitCost: parseFloat(formData.unitCost),
         }),
       });
@@ -426,6 +435,21 @@ export default function EditProduct() {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {formData.type === 'FBM' && (
+            <div>
+              <Label>Miscellaneous Cost</Label>
+              <Input
+                type="number"
+                name="miscCost"
+                defaultValue={formData.miscCost}
+                onChange={handleInputChange}
+                placeholder="0.10"
+                step="0.01"
+                min="0"
+              />
             </div>
           )}
 

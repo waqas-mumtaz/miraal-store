@@ -90,6 +90,7 @@ export async function GET(
         type: product.type,
         linkedPackaging: product.linkedPackaging,
         packagingCost: product.packagingCost,
+        miscCost: product.miscCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: totalCOG,
@@ -179,6 +180,7 @@ export async function PUT(
       type,
       linkedPackaging,
       packagingCost,
+      miscCost,
       unitCost 
     } = await request.json()
 
@@ -230,6 +232,7 @@ export async function PUT(
         type: type.trim(),
         linkedPackaging: linkedPackaging?.trim() || null,
         packagingCost: parseFloat(packagingCost || 0),
+        miscCost: parseFloat(miscCost || 0),
         unitCost: parseFloat(unitCost),
         updatedAt: new Date()
       },
@@ -268,6 +271,7 @@ export async function PUT(
         type: product.type,
         linkedPackaging: product.linkedPackaging,
         packagingCost: product.packagingCost,
+        miscCost: product.miscCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: product.totalCOG,

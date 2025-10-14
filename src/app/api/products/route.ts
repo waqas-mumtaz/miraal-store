@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
         type: product.type,
         linkedPackaging: product.linkedPackaging,
         packagingCost: product.packagingCost,
+        miscCost: product.miscCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: product.totalCOG,
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest) {
       type,
       linkedPackaging,
       packagingCost,
+      miscCost,
       unitCost 
     } = await request.json()
 
@@ -201,6 +203,7 @@ export async function POST(request: NextRequest) {
         type: type.trim(),
         linkedPackaging: linkedPackaging?.trim() || null,
         packagingCost: parseFloat(packagingCost || 0),
+        miscCost: parseFloat(miscCost || 0),
         unitCost: parseFloat(unitCost),
         currentQuantity: parseInt(quantity), // Set initial quantity
         userId: user.id,
@@ -240,6 +243,7 @@ export async function POST(request: NextRequest) {
         type: product.type,
         linkedPackaging: product.linkedPackaging,
         packagingCost: product.packagingCost,
+        miscCost: product.miscCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: product.totalCOG,

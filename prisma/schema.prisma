@@ -81,6 +81,7 @@ model Product {
   type            String   @default("FBM") // FBM or FBA
   linkedPackaging String?  // ID of linked packaging for FBM
   packagingCost   Decimal  @db.Decimal(10, 2) @default(0) // Cost of linked packaging
+  miscCost        Decimal  @db.Decimal(10, 2) @default(0) // Miscellaneous cost for FBM
   currentQuantity Int      @default(0)
   unitCost        Decimal  @db.Decimal(10, 2)
   totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods
