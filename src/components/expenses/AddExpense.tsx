@@ -14,7 +14,7 @@ export default function AddExpense() {
     perQuantityCost: "",
     buyLink: "",
     date: "",
-    category: "",
+    category: "Packaging",
     comments: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -65,9 +65,32 @@ export default function AddExpense() {
         return;
       }
 
-      // TODO: Call API to create expense
-      console.log("Creating expense:", formData);
-      
+      // Call API to create expense
+      const response = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          quantity: formData.quantity,
+          totalAmount: formData.totalAmount,
+          perQuantityCost: formData.perQuantityCost,
+          buyLink: formData.buyLink,
+          date: formData.date,
+          category: formData.category,
+          comments: formData.comments,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to create expense');
+        setIsLoading(false);
+        return;
+      }
+
       setSuccess("Expense added successfully!");
       
       // Reset form
@@ -78,7 +101,7 @@ export default function AddExpense() {
         perQuantityCost: "",
         buyLink: "",
         date: "",
-        category: "",
+        category: "Packaging",
         comments: "",
       });
 
@@ -239,7 +262,7 @@ export default function AddExpense() {
           </Button>
           <Button
             size="sm"
-            onClick={(e) => handleSubmit(e)}
+            onClick={(e: React.MouseEvent) => handleSubmit(e as any)}
             disabled={isLoading}
           >
             {isLoading ? 'Adding...' : 'Add Expense'}

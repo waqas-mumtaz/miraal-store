@@ -24,7 +24,31 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations
+  expenses  Expense[]
+
   @@map("users")
+}
+
+// Expense model for tracking business expenses
+model Expense {
+  id              String   @id @default(cuid())
+  title           String
+  quantity        Int
+  totalAmount     Decimal  @db.Decimal(10, 2)
+  perQuantityCost Decimal @db.Decimal(10, 2)
+  buyLink         String?
+  date            DateTime
+  category        String
+  comments        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
 }
 
 // Role enum
