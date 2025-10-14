@@ -296,7 +296,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/products/[id] - Delete product (soft delete)
+// DELETE /api/products/[id] - Delete product (hard delete with cascade)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -339,14 +339,11 @@ export async function DELETE(
       )
     }
 
-    // Soft delete by setting isActive to false
-    await prisma.product.update({
+    // Hard delete - this will cascade delete replenishments and expenses
+    await prisma.product.delete({
       where: {
-        id: productId
-      },
-      data: {
-        isActive: false,
-        updatedAt: new Date()
+        id: productId,
+        userId: user.id
       }
     })
 
