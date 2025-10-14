@@ -7,6 +7,9 @@ interface Expense {
   id: string;
   title: string;
   quantity: number;
+  amount: number;
+  shippingCost: number;
+  vat: number;
   totalAmount: number;
   perQuantityCost: number;
   buyLink?: string;
@@ -41,7 +44,9 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
     setError("");
     
     try {
-      const response = await fetch(`/api/expenses/${expenseId}`);
+      const response = await fetch(`/api/expenses/${expenseId}`, {
+        credentials: 'include',
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -135,6 +140,33 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
                 </label>
                 <p className="text-lg text-gray-900 dark:text-white">
                   {expense.quantity}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Amount
+                </label>
+                <p className="text-lg text-gray-900 dark:text-white">
+                  {formatCurrency(expense.amount)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Shipping Cost
+                </label>
+                <p className="text-lg text-gray-900 dark:text-white">
+                  {formatCurrency(expense.shippingCost)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  VAT
+                </label>
+                <p className="text-lg text-gray-900 dark:text-white">
+                  {formatCurrency(expense.vat)}
                 </p>
               </div>
 
