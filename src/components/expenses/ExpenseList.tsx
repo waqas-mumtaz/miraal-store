@@ -30,7 +30,9 @@ export default function ExpenseList() {
 
   const fetchExpenses = async () => {
     try {
-      const response = await fetch('/api/expenses');
+      const response = await fetch('/api/expenses', {
+        credentials: 'include',
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -79,6 +81,7 @@ export default function ExpenseList() {
     try {
       const response = await fetch(`/api/expenses/${expenseId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {

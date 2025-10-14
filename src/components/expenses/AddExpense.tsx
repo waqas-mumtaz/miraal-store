@@ -71,6 +71,8 @@ export default function AddExpense() {
     setSuccess("");
 
     try {
+      console.log('Form data:', formData);
+      
       // Validate form
       if (!formData.title || !formData.quantity || !formData.amount || !formData.category || !formData.date) {
         setError("Please fill in all required fields");
@@ -78,12 +80,28 @@ export default function AddExpense() {
         return;
       }
 
+      console.log('Calling API with data:', {
+        title: formData.title,
+        quantity: formData.quantity,
+        amount: formData.amount,
+        shippingCost: formData.shippingCost,
+        vat: formData.vat,
+        totalAmount: formData.totalAmount,
+        perQuantityCost: formData.perQuantityCost,
+        buyLink: formData.buyLink,
+        date: formData.date,
+        category: formData.category,
+        invoiceLink: formData.invoiceLink,
+        comments: formData.comments,
+      });
+
       // Call API to create expense
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           title: formData.title,
           quantity: formData.quantity,

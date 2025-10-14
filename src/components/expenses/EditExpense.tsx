@@ -143,6 +143,7 @@ export default function EditExpense() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           title: formData.title,
           quantity: formData.quantity,
