@@ -104,8 +104,10 @@ export default function EditExpense() {
     if (success) setSuccess("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     
     setIsLoading(true);
     setError("");
