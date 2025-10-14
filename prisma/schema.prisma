@@ -26,8 +26,12 @@ model User {
 
   // Relations
   expenses  Expense[]
-  inventoryItems InventoryItem[]
-  inventoryReplenishments InventoryReplenishment[]
+  products Product[]
+  packaging Packaging[]
+  productExpenses ProductExpense[]
+  packagingExpenses PackagingExpense[]
+  productReplenishments ProductReplenishment[]
+  packagingReplenishments PackagingReplenishment[]
 
   @@map("users")
 }
@@ -51,20 +55,24 @@ model Expense {
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Inventory replenishment relation
-  replenishments  InventoryReplenishment[]
+  // Product and packaging expense relations
+  productExpenses ProductExpense[]
+  packagingExpenses PackagingExpense[]
+  productReplenishments ProductReplenishment[]
+  packagingReplenishments PackagingReplenishment[]
 
   @@map("expenses")
 }
 
-// Inventory item model for tracking packaging and other inventory
-model InventoryItem {
+// Product model for tracking products with COG calculation
+model Product {
   id              String   @id @default(cuid())
   name            String
   description     String?
+  sku             String?  // Product SKU
   currentQuantity Int      @default(0)
   unitCost        Decimal  @db.Decimal(10, 2)
-  linkedProducts  String?  // JSON array of product IDs
+  totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -72,13 +80,73 @@ model InventoryItem {
   // Relations
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  replenishments  InventoryReplenishment[]
+  linkedExpenses  ProductExpense[]
+  replenishments  ProductReplenishment[]
 
-  @@map("inventory_items")
+  @@map("products")
 }
 
-// Inventory replenishment history
-model InventoryReplenishment {
+// Packaging model for tracking packaging materials
+model Packaging {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  type            String   // Box, Bubble Wrap, Tape, etc.
+  currentQuantity Int      @default(0)
+  unitCost        Decimal  @db.Decimal(10, 2)
+  totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods
+  linkedProducts  String?  // JSON array of product IDs that use this packaging
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedExpenses  PackagingExpense[]
+  replenishments  PackagingReplenishment[]
+
+  @@map("packaging")
+}
+
+// Link products to expenses for COG calculation
+model ProductExpense {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  expenseId       String
+  expense         Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  allocatedCost   Decimal  @db.Decimal(10, 2) // How much of this expense is allocated to this product
+  createdAt       DateTime @default(now())
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, expenseId])
+  @@map("product_expenses")
+}
+
+// Link packaging to expenses for COG calculation
+model PackagingExpense {
+  id              String   @id @default(cuid())
+  packagingId     String
+  packaging       Packaging @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+  expenseId       String
+  expense         Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  allocatedCost   Decimal  @db.Decimal(10, 2) // How much of this expense is allocated to this packaging
+  createdAt       DateTime @default(now())
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([packagingId, expenseId])
+  @@map("packaging_expenses")
+}
+
+// Product replenishment history
+model ProductReplenishment {
   id              String   @id @default(cuid())
   quantity        Int
   cost            Decimal  @db.Decimal(10, 2)
@@ -89,8 +157,8 @@ model InventoryReplenishment {
   createdAt       DateTime @default(now())
 
   // Relations
-  inventoryItemId String
-  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -99,8 +167,34 @@ model InventoryReplenishment {
   expenseId       String?
   expense         Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 
-  @@map("inventory_replenishments")
+  @@map("product_replenishments")
 }
+
+// Packaging replenishment history
+model PackagingReplenishment {
+  id              String   @id @default(cuid())
+  quantity        Int
+  cost            Decimal  @db.Decimal(10, 2)
+  unitCost        Decimal  @db.Decimal(10, 2)
+  date            DateTime
+  invoiceLink     String?
+  comments        String?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  packagingId     String
+  packaging       Packaging @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional link to expense
+  expenseId       String?
+  expense         Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+
+  @@map("packaging_replenishments")
+}
+
 
 // Role enum
 enum Role {

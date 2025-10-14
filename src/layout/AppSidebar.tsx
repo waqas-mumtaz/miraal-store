@@ -54,8 +54,9 @@ const navItems: NavItem[] = [
     name: "Inventory",
     icon: <BoxCubeIcon />,
     subItems: [
-      { name: "Inventory List", path: "/inventory", pro: false },
-      { name: "Add Item", path: "/inventory/add", pro: false },
+      { name: "Inventory Management", path: "/inventory", pro: false },
+      { name: "Products", path: "/inventory/products", pro: false },
+      { name: "Packaging", path: "/inventory/packaging", pro: false },
     ],
   },
   {
