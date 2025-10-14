@@ -123,6 +123,7 @@ export async function GET(
         totalAmount: expense.totalAmount,
         perQuantityCost: expense.perQuantityCost,
         buyLink: expense.buyLink,
+        invoiceLink: expense.invoiceLink,
         date: expense.date,
         category: expense.category,
         comments: expense.comments,

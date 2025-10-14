@@ -38,6 +38,7 @@ model Expense {
   totalAmount     Decimal  @db.Decimal(10, 2)
   perQuantityCost Decimal @db.Decimal(10, 2)
   buyLink         String?
+  invoiceLink     String?
   date            DateTime
   category        String
   comments        String?

@@ -9,6 +9,7 @@ interface Expense {
   totalAmount: number;
   perQuantityCost: number;
   buyLink?: string;
+  invoiceLink?: string;
   date: string;
   category: string;
   comments?: string;
@@ -124,9 +125,6 @@ export default function ExpenseList() {
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-            Expense List
-          </h4>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             View and manage all your expenses
           </p>
@@ -222,24 +220,35 @@ export default function ExpenseList() {
                         <span className="font-medium text-gray-900 dark:text-white">
                           {expense.title}
                         </span>
-                        {expense.comments && (
-                          <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {expense.comments}
-                          </span>
-                        )}
-                        {expense.buyLink && (
-                          <a
-                            href={expense.buyLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center mt-1 text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-                          >
-                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                            View Product
-                          </a>
-                        )}
+                       
+                        <div className="flex flex-col gap-1 mt-1">
+                          {expense.buyLink && (
+                            <a
+                              href={expense.buyLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              View Product
+                            </a>
+                          )}
+                          {expense.invoiceLink && (
+                            <a
+                              href={expense.invoiceLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              View Invoice
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 px-4">
