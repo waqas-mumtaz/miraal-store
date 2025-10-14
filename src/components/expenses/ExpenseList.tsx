@@ -7,6 +7,9 @@ interface Expense {
   id: string;
   title: string;
   quantity: number;
+  amount: number;
+  shippingCost: number;
+  vat: number;
   totalAmount: number;
   perQuantityCost: number;
   buyLink?: string;
@@ -60,7 +63,7 @@ export default function ExpenseList() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   };
 

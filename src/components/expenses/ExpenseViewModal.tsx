@@ -74,7 +74,7 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   };
 
@@ -148,7 +148,7 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
                   Amount
                 </label>
                 <p className="text-lg text-gray-900 dark:text-white">
-                  {formatCurrency(expense.amount)}
+                  {formatCurrency(expense.amount || 0)}
                 </p>
               </div>
 
@@ -157,7 +157,7 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
                   Shipping Cost
                 </label>
                 <p className="text-lg text-gray-900 dark:text-white">
-                  {formatCurrency(expense.shippingCost)}
+                  {formatCurrency(expense.shippingCost || 0)}
                 </p>
               </div>
 
@@ -166,7 +166,7 @@ export default function ExpenseViewModal({ isOpen, onClose, expenseId }: Expense
                   VAT
                 </label>
                 <p className="text-lg text-gray-900 dark:text-white">
-                  {formatCurrency(expense.vat)}
+                  {formatCurrency(expense.vat || 0)}
                 </p>
               </div>
 
