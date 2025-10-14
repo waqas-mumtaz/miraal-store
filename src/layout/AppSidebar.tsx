@@ -8,6 +8,7 @@ import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
+  DollarLineIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
@@ -41,7 +42,14 @@ const navItems: NavItem[] = [
     name: "User Profile",
     path: "/profile",
   },
-
+  {
+    name: "Expenses",
+    icon: <DollarLineIcon />,
+    subItems: [
+      { name: "Expense List", path: "/expenses", pro: false },
+      { name: "Add Expense", path: "/expenses/add", pro: false },
+    ],
+  },
   {
     name: "Forms",
     icon: <ListIcon />,
