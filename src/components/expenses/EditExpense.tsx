@@ -29,7 +29,7 @@ export default function EditExpense() {
     totalAmount: "",
     perQuantityCost: "",
     buyLink: "",
-    date: "",
+    date: new Date().toISOString().split('T')[0], // Current date as default
     category: "",
     invoiceLink: "",
     comments: "",

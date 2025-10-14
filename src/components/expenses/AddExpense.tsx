@@ -13,7 +13,7 @@ export default function AddExpense() {
     totalAmount: "",
     perQuantityCost: "",
     buyLink: "",
-    date: "",
+    date: new Date().toISOString().split('T')[0], // Current date as default
     category: "Packaging",
     invoiceLink: "",
     comments: "",
@@ -102,7 +102,7 @@ export default function AddExpense() {
         totalAmount: "",
         perQuantityCost: "",
         buyLink: "",
-        date: "",
+        date: new Date().toISOString().split('T')[0], // Current date as default
         category: "Packaging",
         invoiceLink: "",
         comments: "",
