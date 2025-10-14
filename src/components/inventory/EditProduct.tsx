@@ -10,12 +10,26 @@ interface Product {
   name: string;
   description?: string;
   sku?: string;
+  quantity: number;
+  cost: number;
+  shipping: number;
+  vat: number;
+  totalCost: number;
+  type: string;
+  linkedPackaging?: string;
+  packagingCost: number;
   currentQuantity: number;
   unitCost: number;
   totalCOG: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Packaging {
+  id: string;
+  name: string;
+  unitCost: number;
 }
 
 export default function EditProduct() {
@@ -28,8 +42,17 @@ export default function EditProduct() {
     name: "",
     description: "",
     sku: "",
+    quantity: "",
+    cost: "",
+    shipping: "0",
+    vat: "0",
+    totalCost: "",
+    type: "FBM",
+    linkedPackaging: "",
+    packagingCost: "0",
     unitCost: "",
   });
+  const [packagingOptions, setPackagingOptions] = useState<Packaging[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +62,22 @@ export default function EditProduct() {
     if (productId) {
       fetchProduct();
     }
+    fetchPackaging();
   }, [productId]);
+
+  const fetchPackaging = async () => {
+    try {
+      const response = await fetch('/api/packaging', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPackagingOptions(data.packaging || []);
+      }
+    } catch (error) {
+      console.error('Error fetching packaging:', error);
+    }
+  };
 
   const fetchProduct = async () => {
     try {
@@ -59,6 +97,14 @@ export default function EditProduct() {
         name: data.product.name,
         description: data.product.description || "",
         sku: data.product.sku || "",
+        quantity: data.product.quantity?.toString() || "",
+        cost: data.product.cost?.toString() || "",
+        shipping: data.product.shipping?.toString() || "0",
+        vat: data.product.vat?.toString() || "0",
+        totalCost: data.product.totalCost?.toString() || "",
+        type: data.product.type || "FBM",
+        linkedPackaging: data.product.linkedPackaging || "",
+        packagingCost: data.product.packagingCost?.toString() || "0",
         unitCost: data.product.unitCost.toString(),
       });
     } catch (error) {
@@ -69,13 +115,55 @@ export default function EditProduct() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+
+      // Auto-calculate total cost when cost, shipping, or vat changes
+      if (name === 'cost' || name === 'shipping' || name === 'vat') {
+        const cost = name === 'cost' ? parseFloat(value) : parseFloat(prev.cost);
+        const shipping = name === 'shipping' ? parseFloat(value) : parseFloat(prev.shipping);
+        const vat = name === 'vat' ? parseFloat(value) : parseFloat(prev.vat);
+        
+        const totalCost = cost + shipping + vat;
+        newData.totalCost = totalCost.toFixed(2);
+      }
+
+      // Auto-calculate unit cost when total cost or quantity changes
+      if (name === 'totalCost' || name === 'quantity' || name === 'linkedPackaging') {
+        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(prev.totalCost);
+        const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
+        const packagingCost = name === 'linkedPackaging' ? 
+          (value ? packagingOptions.find(p => p.id === value)?.unitCost || 0 : 0) : 
+          parseFloat(prev.packagingCost);
+        
+        if (quantity > 0 && totalCost > 0) {
+          if (prev.type === 'FBM' && packagingCost > 0) {
+            newData.unitCost = ((totalCost / quantity) + packagingCost).toFixed(2);
+            newData.packagingCost = packagingCost.toString();
+          } else {
+            newData.unitCost = (totalCost / quantity).toFixed(2);
+          }
+        } else {
+          newData.unitCost = "";
+        }
+      }
+
+      // Handle type change
+      if (name === 'type') {
+        if (value === 'FBA') {
+          newData.linkedPackaging = "";
+          newData.packagingCost = "0";
+        }
+      }
+
+      return newData;
+    });
     
     // Clear error when user starts typing
     if (error) setError("");
@@ -93,15 +181,28 @@ export default function EditProduct() {
 
     try {
       // Validate form
-      if (!formData.name || !formData.unitCost) {
+      if (!formData.name || !formData.quantity || !formData.cost || !formData.type) {
         setError("Please fill in all required fields");
         setIsLoading(false);
         return;
       }
 
       // Validate data types
-      if (isNaN(parseFloat(formData.unitCost)) || parseFloat(formData.unitCost) <= 0) {
-        setError("Unit cost must be a positive number");
+      if (isNaN(parseFloat(formData.quantity)) || parseFloat(formData.quantity) <= 0) {
+        setError("Quantity must be a positive number");
+        setIsLoading(false);
+        return;
+      }
+
+      if (isNaN(parseFloat(formData.cost)) || parseFloat(formData.cost) <= 0) {
+        setError("Cost must be a positive number");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate FBM packaging requirement
+      if (formData.type === 'FBM' && !formData.linkedPackaging) {
+        setError("Please select packaging for FBM products");
         setIsLoading(false);
         return;
       }
@@ -112,11 +213,20 @@ export default function EditProduct() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
           sku: formData.sku,
-          unitCost: formData.unitCost,
+          quantity: parseInt(formData.quantity),
+          cost: parseFloat(formData.cost),
+          shipping: parseFloat(formData.shipping),
+          vat: parseFloat(formData.vat),
+          totalCost: parseFloat(formData.totalCost),
+          type: formData.type,
+          linkedPackaging: formData.linkedPackaging || null,
+          packagingCost: parseFloat(formData.packagingCost),
+          unitCost: parseFloat(formData.unitCost),
         }),
       });
 
@@ -222,7 +332,105 @@ export default function EditProduct() {
           </div>
 
           <div>
-            <Label>Unit Cost *</Label>
+            <Label>Quantity *</Label>
+            <Input
+              type="number"
+              name="quantity"
+              defaultValue={formData.quantity}
+              onChange={handleInputChange}
+              placeholder="0"
+              step="1"
+              min="1"
+            />
+          </div>
+
+          <div>
+            <Label>Cost *</Label>
+            <Input
+              type="number"
+              name="cost"
+              defaultValue={formData.cost}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>Shipping</Label>
+            <Input
+              type="number"
+              name="shipping"
+              defaultValue={formData.shipping}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>VAT</Label>
+            <Input
+              type="number"
+              name="vat"
+              defaultValue={formData.vat}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>Total Cost (Auto-calculated)</Label>
+            <Input
+              type="number"
+              name="totalCost"
+              defaultValue={formData.totalCost}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              disabled
+            />
+          </div>
+
+          <div>
+            <Label>Type *</Label>
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              className="h-12 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+            >
+              <option value="FBM">FBM (Fulfilled by Merchant)</option>
+              <option value="FBA">FBA (Fulfilled by Amazon)</option>
+            </select>
+          </div>
+
+          {formData.type === 'FBM' && (
+            <div>
+              <Label>Linked Packaging *</Label>
+              <select
+                name="linkedPackaging"
+                value={formData.linkedPackaging}
+                onChange={handleInputChange}
+                className="h-12 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+              >
+                <option value="">Select packaging</option>
+                {packagingOptions.map((packaging) => (
+                  <option key={packaging.id} value={packaging.id}>
+                    {packaging.name} (€{packaging.unitCost.toFixed(2)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <Label>Unit Cost (Auto-calculated)</Label>
             <Input
               type="number"
               name="unitCost"
@@ -231,6 +439,7 @@ export default function EditProduct() {
               placeholder="0.00"
               step="0.01"
               min="0"
+              disabled
             />
           </div>
 

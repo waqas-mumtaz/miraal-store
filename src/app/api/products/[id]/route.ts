@@ -82,6 +82,14 @@ export async function GET(
         name: product.name,
         description: product.description,
         sku: product.sku,
+        quantity: product.quantity,
+        cost: product.cost,
+        shipping: product.shipping,
+        vat: product.vat,
+        totalCost: product.totalCost,
+        type: product.type,
+        linkedPackaging: product.linkedPackaging,
+        packagingCost: product.packagingCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: totalCOG,
@@ -163,21 +171,44 @@ export async function PUT(
       name, 
       description, 
       sku,
+      quantity,
+      cost,
+      shipping,
+      vat,
+      totalCost,
+      type,
+      linkedPackaging,
+      packagingCost,
       unitCost 
     } = await request.json()
 
     // Validate required fields
-    if (!name || !unitCost) {
+    if (!name || !quantity || !cost || !type) {
       return NextResponse.json(
-        { error: 'Name and unit cost are required' },
+        { error: 'Name, quantity, cost, and type are required' },
         { status: 400 }
       )
     }
 
     // Validate data types
-    if (isNaN(unitCost) || unitCost <= 0) {
+    if (isNaN(quantity) || quantity <= 0) {
       return NextResponse.json(
-        { error: 'Unit cost must be a positive number' },
+        { error: 'Quantity must be a positive number' },
+        { status: 400 }
+      )
+    }
+
+    if (isNaN(cost) || cost <= 0) {
+      return NextResponse.json(
+        { error: 'Cost must be a positive number' },
+        { status: 400 }
+      )
+    }
+
+    // Validate FBM packaging requirement
+    if (type === 'FBM' && !linkedPackaging) {
+      return NextResponse.json(
+        { error: 'Packaging is required for FBM products' },
         { status: 400 }
       )
     }
@@ -191,6 +222,14 @@ export async function PUT(
         name: name.trim(),
         description: description?.trim() || null,
         sku: sku?.trim() || null,
+        quantity: parseInt(quantity),
+        cost: parseFloat(cost),
+        shipping: parseFloat(shipping || 0),
+        vat: parseFloat(vat || 0),
+        totalCost: parseFloat(totalCost),
+        type: type.trim(),
+        linkedPackaging: linkedPackaging?.trim() || null,
+        packagingCost: parseFloat(packagingCost || 0),
         unitCost: parseFloat(unitCost),
         updatedAt: new Date()
       },
@@ -221,6 +260,14 @@ export async function PUT(
         name: product.name,
         description: product.description,
         sku: product.sku,
+        quantity: product.quantity,
+        cost: product.cost,
+        shipping: product.shipping,
+        vat: product.vat,
+        totalCost: product.totalCost,
+        type: product.type,
+        linkedPackaging: product.linkedPackaging,
+        packagingCost: product.packagingCost,
         currentQuantity: product.currentQuantity,
         unitCost: product.unitCost,
         totalCOG: product.totalCOG,

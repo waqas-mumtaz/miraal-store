@@ -73,6 +73,14 @@ model Product {
   name            String
   description     String?
   sku             String?  // Product SKU
+  quantity        Int      @default(0) // New field
+  cost            Decimal  @db.Decimal(10, 2) @default(0) // New field
+  shipping        Decimal  @db.Decimal(10, 2) @default(0) // New field
+  vat             Decimal  @db.Decimal(10, 2) @default(0) // New field
+  totalCost       Decimal  @db.Decimal(10, 2) @default(0) // New field
+  type            String   @default("FBM") // FBM or FBA
+  linkedPackaging String?  // ID of linked packaging for FBM
+  packagingCost   Decimal  @db.Decimal(10, 2) @default(0) // Cost of linked packaging
   currentQuantity Int      @default(0)
   unitCost        Decimal  @db.Decimal(10, 2)
   totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods
