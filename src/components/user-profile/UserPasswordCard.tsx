@@ -200,10 +200,9 @@ export default function UserPasswordCard() {
                     <Input
                       type={showPasswords.current ? "text" : "password"}
                       name="currentPassword"
-                      value={formData.currentPassword}
+                      defaultValue={formData.currentPassword}
                       onChange={handleInputChange}
                       placeholder="Enter your current password"
-                      required
                     />
                     <button
                       type="button"
@@ -229,10 +228,9 @@ export default function UserPasswordCard() {
                     <Input
                       type={showPasswords.new ? "text" : "password"}
                       name="newPassword"
-                      value={formData.newPassword}
+                      defaultValue={formData.newPassword}
                       onChange={handleInputChange}
                       placeholder="Enter your new password"
-                      required
                     />
                     <button
                       type="button"
@@ -258,10 +256,9 @@ export default function UserPasswordCard() {
                     <Input
                       type={showPasswords.confirm ? "text" : "password"}
                       name="confirmPassword"
-                      value={formData.confirmPassword}
+                      defaultValue={formData.confirmPassword}
                       onChange={handleInputChange}
                       placeholder="Confirm your new password"
-                      required
                     />
                     <button
                       type="button"
@@ -293,7 +290,6 @@ export default function UserPasswordCard() {
                 Cancel
               </Button>
               <Button 
-                type="submit"
                 size="sm" 
                 onClick={handleSave}
                 disabled={isLoading}

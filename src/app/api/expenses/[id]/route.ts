@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the auth token from cookies
@@ -27,7 +27,7 @@ export async function DELETE(
       )
     }
 
-    const expenseId = params.id
+    const { id: expenseId } = await params
 
     // Check if expense exists and belongs to the user
     const expense = await prisma.expense.findFirst({
@@ -66,7 +66,7 @@ export async function DELETE(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the auth token from cookies
@@ -89,7 +89,7 @@ export async function PUT(
       )
     }
 
-    const expenseId = params.id
+    const { id: expenseId } = await params
 
     // Check if expense exists and belongs to the user
     const existingExpense = await prisma.expense.findFirst({
@@ -199,7 +199,7 @@ export async function PUT(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the auth token from cookies
@@ -222,7 +222,7 @@ export async function GET(
       )
     }
 
-    const expenseId = params.id
+    const { id: expenseId } = await params
 
     // Get the expense
     const expense = await prisma.expense.findFirst({

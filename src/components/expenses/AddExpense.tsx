@@ -283,7 +283,7 @@ export default function AddExpense() {
           </Button>
           <Button
             size="sm"
-            onClick={(e: React.MouseEvent) => handleSubmit(e as any)}
+            onClick={() => handleSubmit({} as React.FormEvent)}
             disabled={isLoading}
           >
             {isLoading ? 'Adding...' : 'Add Expense'}
