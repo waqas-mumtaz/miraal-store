@@ -58,6 +58,42 @@ export default function ExpenseList() {
     }).format(amount);
   };
 
+  const handleView = (expenseId: string) => {
+    // TODO: Implement view functionality
+    console.log('View expense:', expenseId);
+    // Could open a modal or navigate to a detail page
+  };
+
+  const handleEdit = (expenseId: string) => {
+    // TODO: Implement edit functionality
+    console.log('Edit expense:', expenseId);
+    // Could navigate to edit page or open edit modal
+  };
+
+  const handleDelete = async (expenseId: string) => {
+    if (!confirm('Are you sure you want to delete this expense?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/expenses/${expenseId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete expense');
+        return;
+      }
+
+      // Refresh the expenses list
+      fetchExpenses();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      alert('Failed to delete expense');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -162,58 +198,108 @@ export default function ExpenseList() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {expenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h5 className="font-medium text-gray-900 dark:text-white">
-                        {expense.title}
-                      </h5>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Title</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Category</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Quantity</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Total Amount</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Per Unit</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Date</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map((expense) => (
+                  <tr
+                    key={expense.id}
+                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <td className="py-4 px-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {expense.title}
+                        </span>
+                        {expense.comments && (
+                          <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {expense.comments}
+                          </span>
+                        )}
+                        {expense.buyLink && (
+                          <a
+                            href={expense.buyLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center mt-1 text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View Product
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
                       <span className="px-2 py-1 text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/20 dark:text-brand-400 rounded-full">
                         {expense.category}
                       </span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
-                      <div>
-                        <span className="font-medium">Quantity:</span> {expense.quantity}
+                    </td>
+                    <td className="py-4 px-4 text-gray-900 dark:text-white">
+                      {expense.quantity}
+                    </td>
+                    <td className="py-4 px-4 text-gray-900 dark:text-white font-medium">
+                      {formatCurrency(expense.totalAmount)}
+                    </td>
+                    <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                      {formatCurrency(expense.perQuantityCost)}
+                    </td>
+                    <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                      {formatDate(expense.date)}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center justify-center gap-2">
+                        {/* View Button */}
+                        <button
+                          onClick={() => handleView(expense.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          title="View Details"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => handleEdit(expense.id)}
+                          className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                          title="Edit Expense"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDelete(expense.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          title="Delete Expense"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
-                      <div>
-                        <span className="font-medium">Total:</span> {formatCurrency(expense.totalAmount)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Per Unit:</span> {formatCurrency(expense.perQuantityCost)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Date:</span> {formatDate(expense.date)}
-                      </div>
-                    </div>
-                    {expense.comments && (
-                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        {expense.comments}
-                      </p>
-                    )}
-                    {expense.buyLink && (
-                      <a
-                        href={expense.buyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center mt-2 text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        View Product
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
