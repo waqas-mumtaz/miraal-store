@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import ExpenseViewModal from "./ExpenseViewModal";
 
 interface Expense {
   id: string;
@@ -20,6 +21,8 @@ export default function ExpenseList() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchExpenses();
@@ -60,15 +63,12 @@ export default function ExpenseList() {
   };
 
   const handleView = (expenseId: string) => {
-    // TODO: Implement view functionality
-    console.log('View expense:', expenseId);
-    // Could open a modal or navigate to a detail page
+    setSelectedExpenseId(expenseId);
+    setViewModalOpen(true);
   };
 
   const handleEdit = (expenseId: string) => {
-    // TODO: Implement edit functionality
-    console.log('Edit expense:', expenseId);
-    // Could navigate to edit page or open edit modal
+    window.location.href = `/expenses/edit/${expenseId}`;
   };
 
   const handleDelete = async (expenseId: string) => {
@@ -312,6 +312,16 @@ export default function ExpenseList() {
           </div>
         )}
       </div>
+
+      {/* View Modal */}
+      <ExpenseViewModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false);
+          setSelectedExpenseId(null);
+        }}
+        expenseId={selectedExpenseId}
+      />
     </div>
   );
 }
