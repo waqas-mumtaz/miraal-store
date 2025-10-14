@@ -9,6 +9,9 @@ interface Expense {
   id: string;
   title: string;
   quantity: number;
+  amount: number;
+  shippingCost: number;
+  vat: number;
   totalAmount: number;
   perQuantityCost: number;
   buyLink?: string;
@@ -26,6 +29,9 @@ export default function EditExpense() {
   const [formData, setFormData] = useState({
     title: "",
     quantity: "",
+    amount: "",
+    shippingCost: "0",
+    vat: "0",
     totalAmount: "",
     perQuantityCost: "",
     buyLink: "",
@@ -59,6 +65,9 @@ export default function EditExpense() {
       setFormData({
         title: expense.title || "",
         quantity: expense.quantity?.toString() || "",
+        amount: expense.amount?.toString() || "",
+        shippingCost: expense.shippingCost?.toString() || "0",
+        vat: expense.vat?.toString() || "0",
         totalAmount: expense.totalAmount?.toString() || "",
         perQuantityCost: expense.perQuantityCost?.toString() || "",
         buyLink: expense.buyLink || "",
@@ -84,11 +93,18 @@ export default function EditExpense() {
         [name]: value
       };
       
-      // Auto-calculate per quantity cost when quantity or total amount changes
-      if (name === 'quantity' || name === 'totalAmount') {
+      // Auto-calculate total amount and per quantity cost when amount, shipping, vat, or quantity changes
+      if (name === 'amount' || name === 'shippingCost' || name === 'vat' || name === 'quantity') {
+        const amount = name === 'amount' ? parseFloat(value) : parseFloat(prev.amount);
+        const shippingCost = name === 'shippingCost' ? parseFloat(value) : parseFloat(prev.shippingCost);
+        const vat = name === 'vat' ? parseFloat(value) : parseFloat(prev.vat);
         const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
-        const totalAmount = name === 'totalAmount' ? parseFloat(value) : parseFloat(prev.totalAmount);
         
+        // Calculate total amount
+        const totalAmount = amount + shippingCost + vat;
+        newData.totalAmount = totalAmount.toFixed(2);
+        
+        // Calculate per quantity cost
         if (quantity > 0 && totalAmount > 0) {
           newData.perQuantityCost = (totalAmount / quantity).toFixed(2);
         } else {
@@ -115,7 +131,7 @@ export default function EditExpense() {
 
     try {
       // Validate form
-      if (!formData.title || !formData.quantity || !formData.totalAmount || !formData.category || !formData.date) {
+      if (!formData.title || !formData.quantity || !formData.amount || !formData.category || !formData.date) {
         setError("Please fill in all required fields");
         setIsLoading(false);
         return;
@@ -130,6 +146,9 @@ export default function EditExpense() {
         body: JSON.stringify({
           title: formData.title,
           quantity: formData.quantity,
+          amount: formData.amount,
+          shippingCost: formData.shippingCost,
+          vat: formData.vat,
           totalAmount: formData.totalAmount,
           perQuantityCost: formData.perQuantityCost,
           buyLink: formData.buyLink,
@@ -222,7 +241,46 @@ export default function EditExpense() {
           </div>
 
           <div>
-            <Label>Total Amount *</Label>
+            <Label>Amount *</Label>
+            <Input
+              type="number"
+              name="amount"
+              defaultValue={formData.amount}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step={0.01}
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>Shipping Cost</Label>
+            <Input
+              type="number"
+              name="shippingCost"
+              defaultValue={formData.shippingCost}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step={0.01}
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>VAT</Label>
+            <Input
+              type="number"
+              name="vat"
+              defaultValue={formData.vat}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step={0.01}
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>Total Amount (Auto-calculated)</Label>
             <Input
               type="number"
               name="totalAmount"
@@ -231,6 +289,7 @@ export default function EditExpense() {
               placeholder="0.00"
               step={0.01}
               min="0"
+              disabled
             />
           </div>
 

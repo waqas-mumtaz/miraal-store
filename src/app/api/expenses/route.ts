@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
     const { 
       title, 
       quantity, 
+      amount,
+      shippingCost,
+      vat,
       totalAmount, 
       perQuantityCost, 
       buyLink, 
@@ -37,9 +40,9 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // Validate required fields
-    if (!title || !quantity || !totalAmount || !date || !category) {
+    if (!title || !quantity || !amount || !date || !category) {
       return NextResponse.json(
-        { error: 'Title, quantity, total amount, date, and category are required' },
+        { error: 'Title, quantity, amount, date, and category are required' },
         { status: 400 }
       )
     }
@@ -52,9 +55,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (isNaN(totalAmount) || totalAmount <= 0) {
+    if (isNaN(amount) || amount <= 0) {
       return NextResponse.json(
-        { error: 'Total amount must be a positive number' },
+        { error: 'Amount must be a positive number' },
         { status: 400 }
       )
     }
@@ -64,6 +67,9 @@ export async function POST(request: NextRequest) {
       data: {
         title: title.trim(),
         quantity: parseInt(quantity),
+        amount: parseFloat(amount),
+        shippingCost: parseFloat(shippingCost || 0),
+        vat: parseFloat(vat || 0),
         totalAmount: parseFloat(totalAmount),
         perQuantityCost: parseFloat(perQuantityCost),
         buyLink: buyLink?.trim() || null,

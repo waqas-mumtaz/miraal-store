@@ -41,6 +41,9 @@ model Expense {
   id              String   @id @default(cuid())
   title           String
   quantity        Int
+  amount          Decimal  @db.Decimal(10, 2) @default(0)
+  shippingCost    Decimal  @db.Decimal(10, 2) @default(0)
+  vat             Decimal  @db.Decimal(10, 2) @default(0)
   totalAmount     Decimal  @db.Decimal(10, 2)
   perQuantityCost Decimal @db.Decimal(10, 2)
   buyLink         String?
