@@ -69,6 +69,7 @@ export default function InventoryManagement() {
   const [packagingItems, setPackagingItems] = useState<Packaging[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   // Set initial tab based on URL
   useEffect(() => {
@@ -143,6 +144,60 @@ export default function InventoryManagement() {
       return { label: 'Low Stock', color: 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20' };
     } else {
       return { label: 'In Stock', color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20' };
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeleteLoading(productId);
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete product');
+      }
+
+      // Remove from local state
+      setProducts(prev => prev.filter(product => product.id !== productId));
+    } catch (error) {
+      console.error('Delete product error:', error);
+      alert('Failed to delete product. Please try again.');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
+  const handleDeletePackaging = async (packagingId: string) => {
+    if (!confirm('Are you sure you want to delete this packaging item? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeleteLoading(packagingId);
+    try {
+      const response = await fetch(`/api/packaging/${packagingId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete packaging item');
+      }
+
+      // Remove from local state
+      setPackagingItems(prev => prev.filter(item => item.id !== packagingId));
+    } catch (error) {
+      console.error('Delete packaging error:', error);
+      alert('Failed to delete packaging item. Please try again.');
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
@@ -231,9 +286,23 @@ export default function InventoryManagement() {
       {/* Content */}
       <div className="mt-6">
         {activeTab === 'products' ? (
-          <ProductsTable products={products} formatCurrency={formatCurrency} formatDate={formatDate} getQuantityStatus={getQuantityStatus} />
+          <ProductsTable 
+            products={products} 
+            formatCurrency={formatCurrency} 
+            formatDate={formatDate} 
+            getQuantityStatus={getQuantityStatus}
+            onDelete={handleDeleteProduct}
+            deleteLoading={deleteLoading}
+          />
         ) : (
-          <PackagingTable packagingItems={packagingItems} formatCurrency={formatCurrency} formatDate={formatDate} getQuantityStatus={getQuantityStatus} />
+          <PackagingTable 
+            packagingItems={packagingItems} 
+            formatCurrency={formatCurrency} 
+            formatDate={formatDate} 
+            getQuantityStatus={getQuantityStatus}
+            onDelete={handleDeletePackaging}
+            deleteLoading={deleteLoading}
+          />
         )}
       </div>
     </div>
@@ -241,11 +310,13 @@ export default function InventoryManagement() {
 }
 
 // Products Table Component
-function ProductsTable({ products, formatCurrency, formatDate, getQuantityStatus }: {
+function ProductsTable({ products, formatCurrency, formatDate, getQuantityStatus, onDelete, deleteLoading }: {
   products: Product[];
   formatCurrency: (amount: number) => string;
   formatDate: (dateString: string) => string;
   getQuantityStatus: (quantity: number) => { label: string; color: string };
+  onDelete: (productId: string) => void;
+  deleteLoading: string | null;
 }) {
   if (products.length === 0) {
     return (
@@ -353,6 +424,20 @@ function ProductsTable({ products, formatCurrency, formatDate, getQuantityStatus
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </Link>
+                    <button
+                      onClick={() => onDelete(product.id)}
+                      disabled={deleteLoading === product.id}
+                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete Product"
+                    >
+                      {deleteLoading === product.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
                     {product.currentQuantity === 0 && (
                       <Link
                         href={`/inventory/products/${product.id}?replenish=true`}
@@ -374,11 +459,13 @@ function ProductsTable({ products, formatCurrency, formatDate, getQuantityStatus
 }
 
 // Packaging Table Component
-function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantityStatus }: {
+function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantityStatus, onDelete, deleteLoading }: {
   packagingItems: Packaging[];
   formatCurrency: (amount: number) => string;
   formatDate: (dateString: string) => string;
   getQuantityStatus: (quantity: number) => { label: string; color: string };
+  onDelete: (packagingId: string) => void;
+  deleteLoading: string | null;
 }) {
   if (packagingItems.length === 0) {
     return (
@@ -488,6 +575,20 @@ function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantit
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </Link>
+                    <button
+                      onClick={() => onDelete(item.id)}
+                      disabled={deleteLoading === item.id}
+                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete Packaging"
+                    >
+                      {deleteLoading === item.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
                     {item.currentQuantity === 0 && (
                       <Link
                         href={`/inventory/packaging/${item.id}?replenish=true`}
