@@ -4,10 +4,14 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Expenses API: Starting POST request')
+    
     // Get the auth token from cookies
     const token = request.cookies.get('auth-token')?.value
+    console.log('Expenses API: Token exists:', !!token)
 
     if (!token) {
+      console.log('Expenses API: No token found')
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -15,14 +19,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the token
+    console.log('Expenses API: Verifying token')
     const user = await verifyToken(token)
+    console.log('Expenses API: User verified:', !!user)
+    
     if (!user) {
+      console.log('Expenses API: Invalid token')
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
       )
     }
 
+    console.log('Expenses API: Parsing request body')
     const { 
       title, 
       quantity, 
@@ -33,9 +42,12 @@ export async function POST(request: NextRequest) {
       category, 
       comments 
     } = await request.json()
+    
+    console.log('Expenses API: Request data:', { title, quantity, totalAmount, category })
 
     // Validate required fields
     if (!title || !quantity || !totalAmount || !date || !category) {
+      console.log('Expenses API: Validation failed - missing required fields')
       return NextResponse.json(
         { error: 'Title, quantity, total amount, date, and category are required' },
         { status: 400 }
@@ -58,6 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the expense
+    console.log('Expenses API: Creating expense in database')
     const expense = await prisma.expense.create({
       data: {
         title: title.trim(),
@@ -80,6 +93,7 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+    console.log('Expenses API: Expense created successfully:', expense.id)
 
     return NextResponse.json({
       message: 'Expense created successfully',
