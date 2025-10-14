@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET /api/inventory - Fetch all inventory items
+// GET /api/inventory - Fetch combined products and packaging
 export async function GET(request: NextRequest) {
   try {
     // Get the auth token from cookies
@@ -31,54 +31,140 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
 
-    // Build where clause
-    const where: any = {
+    // Build where clause for products
+    const productWhere: any = {
       userId: user.id,
       isActive: true
     }
 
     if (search) {
-      where.OR = [
+      productWhere.OR = [
         { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { description: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } }
       ]
     }
 
-    // Get inventory items with pagination
-    const [inventoryItems, total] = await Promise.all([
-      prisma.inventoryItem.findMany({
-        where,
+    // Build where clause for packaging
+    const packagingWhere: any = {
+      userId: user.id,
+      isActive: true
+    }
+
+    if (search) {
+      packagingWhere.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { type: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    // Get products and packaging with pagination
+    const [products, packagingItems, productTotal, packagingTotal] = await Promise.all([
+      prisma.product.findMany({
+        where: productWhere,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
         include: {
+          linkedExpenses: {
+            include: {
+              expense: {
+                select: {
+                  id: true,
+                  title: true,
+                  date: true,
+                  totalAmount: true
+                }
+              }
+            }
+          },
           replenishments: {
             orderBy: { createdAt: 'desc' },
-            take: 1 // Get latest replenishment
+            take: 1
           }
         }
       }),
-      prisma.inventoryItem.count({ where })
+      prisma.packaging.findMany({
+        where: packagingWhere,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          linkedExpenses: {
+            include: {
+              expense: {
+                select: {
+                  id: true,
+                  title: true,
+                  date: true,
+                  totalAmount: true
+                }
+              }
+            }
+          },
+          replenishments: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      }),
+      prisma.product.count({ where: productWhere }),
+      prisma.packaging.count({ where: packagingWhere })
     ])
 
-    return NextResponse.json({
-      inventoryItems: inventoryItems.map(item => ({
+    // Combine and format the results
+    const allItems = [
+      ...products.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        type: 'Product',
+        sku: product.sku,
+        currentQuantity: product.currentQuantity,
+        unitCost: product.unitCost,
+        totalCOG: product.totalCOG,
+        isActive: product.isActive,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        linkedExpenses: product.linkedExpenses.map(link => ({
+          id: link.id,
+          allocatedCost: link.allocatedCost,
+          expense: link.expense
+        })),
+        lastReplenishment: product.replenishments[0] || null
+      })),
+      ...packagingItems.map(item => ({
         id: item.id,
         name: item.name,
         description: item.description,
+        type: 'Packaging',
+        sku: item.type,
         currentQuantity: item.currentQuantity,
         unitCost: item.unitCost,
-        linkedProducts: item.linkedProducts ? JSON.parse(item.linkedProducts) : [],
+        totalCOG: item.totalCOG,
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
+        linkedExpenses: item.linkedExpenses.map(link => ({
+          id: link.id,
+          allocatedCost: link.allocatedCost,
+          expense: link.expense
+        })),
         lastReplenishment: item.replenishments[0] || null
-      })),
+      }))
+    ]
+
+    // Sort by creation date
+    allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return NextResponse.json({
+      inventoryItems: allItems,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit)
+        total: productTotal + packagingTotal,
+        totalPages: Math.ceil((productTotal + packagingTotal) / limit)
       }
     })
 
@@ -91,90 +177,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/inventory - Create new inventory item
-export async function POST(request: NextRequest) {
-  try {
-    // Get the auth token from cookies
-    const token = request.cookies.get('auth-token')?.value
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    // Verify the token
-    const user = await verifyToken(token)
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      )
-    }
-
-    const { 
-      name, 
-      description, 
-      unitCost, 
-      linkedProducts 
-    } = await request.json()
-
-    // Validate required fields
-    if (!name || !unitCost) {
-      return NextResponse.json(
-        { error: 'Name and unit cost are required' },
-        { status: 400 }
-      )
-    }
-
-    // Validate data types
-    if (isNaN(unitCost) || unitCost <= 0) {
-      return NextResponse.json(
-        { error: 'Unit cost must be a positive number' },
-        { status: 400 }
-      )
-    }
-
-    // Create the inventory item
-    const inventoryItem = await prisma.inventoryItem.create({
-      data: {
-        name: name.trim(),
-        description: description?.trim() || null,
-        unitCost: parseFloat(unitCost),
-        linkedProducts: linkedProducts ? JSON.stringify(linkedProducts) : null,
-        userId: user.id,
-      },
-      include: {
-        replenishments: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      }
-    })
-
-    return NextResponse.json({
-      message: 'Inventory item created successfully',
-      inventoryItem: {
-        id: inventoryItem.id,
-        name: inventoryItem.name,
-        description: inventoryItem.description,
-        currentQuantity: inventoryItem.currentQuantity,
-        unitCost: inventoryItem.unitCost,
-        linkedProducts: inventoryItem.linkedProducts ? JSON.parse(inventoryItem.linkedProducts) : [],
-        isActive: inventoryItem.isActive,
-        createdAt: inventoryItem.createdAt,
-        updatedAt: inventoryItem.updatedAt,
-        lastReplenishment: inventoryItem.replenishments[0] || null
-      }
-    })
-
-  } catch (error) {
-    console.error('Inventory creation error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
