@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface Product {
   id: string;
@@ -62,11 +63,21 @@ interface Packaging {
 }
 
 export default function InventoryManagement() {
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<'products' | 'packaging'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [packagingItems, setPackagingItems] = useState<Packaging[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Set initial tab based on URL
+  useEffect(() => {
+    if (pathname.includes('/packaging')) {
+      setActiveTab('packaging');
+    } else {
+      setActiveTab('products');
+    }
+  }, [pathname]);
 
   useEffect(() => {
     fetchData();
@@ -78,8 +89,10 @@ export default function InventoryManagement() {
       setError("");
 
       if (activeTab === 'products') {
+        console.log('Fetching products...');
         const response = await fetch('/api/products');
         const data = await response.json();
+        console.log('Products response:', { status: response.status, data });
 
         if (!response.ok) {
           setError(data.error || 'Failed to fetch products');
@@ -88,8 +101,10 @@ export default function InventoryManagement() {
 
         setProducts(data.products || []);
       } else {
+        console.log('Fetching packaging...');
         const response = await fetch('/api/packaging');
         const data = await response.json();
+        console.log('Packaging response:', { status: response.status, data });
 
         if (!response.ok) {
           setError(data.error || 'Failed to fetch packaging items');
