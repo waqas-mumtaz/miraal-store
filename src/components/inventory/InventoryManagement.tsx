@@ -40,7 +40,6 @@ interface Packaging {
   currentQuantity: number;
   unitCost: number;
   totalCOG: number;
-  linkedProducts: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -505,7 +504,6 @@ function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantit
             <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Unit Cost</th>
             <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Total COG</th>
             <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Status</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Linked Products</th>
             <th className="text-center py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Actions</th>
           </tr>
         </thead>
@@ -547,11 +545,6 @@ function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantit
                 <td className="py-4 px-4">
                   <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>
                     {status.label}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {item.linkedProducts.length} product{item.linkedProducts.length !== 1 ? 's' : ''}
                   </span>
                 </td>
                 <td className="py-4 px-4">
