@@ -80,23 +80,23 @@ export async function GET(request: NextRequest) {
         name: item.name,
         description: item.description,
         type: item.type,
-        quantity: item.quantity,
-        cost: item.cost,
-        shipping: item.shipping,
-        vat: item.vat,
-        totalCost: item.totalCost,
+        quantity: item.quantity || 0,
+        cost: item.cost || 0,
+        shipping: item.shipping || 0,
+        vat: item.vat || 0,
+        totalCost: item.totalCost || 0,
         currentQuantity: item.currentQuantity,
         unitCost: item.unitCost,
         totalCOG: item.totalCOG,
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
-        linkedExpenses: item.linkedExpenses.map(link => ({
+        linkedExpenses: item.linkedExpenses?.map(link => ({
           id: link.id,
           allocatedCost: link.allocatedCost,
           expense: link.expense
-        })),
-        lastReplenishment: item.replenishments[0] || null
+        })) || [],
+        lastReplenishment: item.replenishments?.[0] || null
       })),
       pagination: {
         page,
