@@ -39,8 +39,8 @@ export default function AddPackaging() {
       }
 
       // Auto-calculate unit cost when total cost or quantity changes
-      if (name === 'totalCost' || name === 'quantity') {
-        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(prev.totalCost);
+      if (name === 'totalCost' || name === 'quantity' || name === 'cost' || name === 'shipping' || name === 'vat') {
+        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(newData.totalCost);
         const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
         
         if (quantity > 0 && totalCost > 0) {
