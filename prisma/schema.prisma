@@ -104,6 +104,11 @@ model Packaging {
   name            String
   description     String?
   type            String   // Box, Bubble Wrap, Tape, etc.
+  quantity        Int      @default(0) // New field
+  cost            Decimal  @db.Decimal(10, 2) @default(0) // New field
+  shipping        Decimal  @db.Decimal(10, 2) @default(0) // New field
+  vat             Decimal  @db.Decimal(10, 2) @default(0) // New field
+  totalCost       Decimal  @db.Decimal(10, 2) @default(0) // New field
   currentQuantity Int      @default(0)
   unitCost        Decimal  @db.Decimal(10, 2)
   totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods

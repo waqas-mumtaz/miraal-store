@@ -80,10 +80,14 @@ export async function GET(request: NextRequest) {
         name: item.name,
         description: item.description,
         type: item.type,
+        quantity: item.quantity,
+        cost: item.cost,
+        shipping: item.shipping,
+        vat: item.vat,
+        totalCost: item.totalCost,
         currentQuantity: item.currentQuantity,
         unitCost: item.unitCost,
         totalCOG: item.totalCOG,
-        linkedProducts: item.linkedProducts ? JSON.parse(item.linkedProducts) : [],
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
@@ -138,22 +142,33 @@ export async function POST(request: NextRequest) {
       name, 
       description, 
       type,
-      unitCost,
-      linkedProducts 
+      quantity,
+      cost,
+      shipping,
+      vat,
+      totalCost,
+      unitCost
     } = await request.json()
 
     // Validate required fields
-    if (!name || !type || !unitCost) {
+    if (!name || !type || !quantity || !cost) {
       return NextResponse.json(
-        { error: 'Name, type, and unit cost are required' },
+        { error: 'Name, type, quantity, and cost are required' },
         { status: 400 }
       )
     }
 
-    // Validate data types
-    if (isNaN(unitCost) || unitCost <= 0) {
+    // Validate numeric fields
+    if (isNaN(quantity) || quantity <= 0) {
       return NextResponse.json(
-        { error: 'Unit cost must be a positive number' },
+        { error: 'Quantity must be a positive number' },
+        { status: 400 }
+      )
+    }
+
+    if (isNaN(cost) || cost <= 0) {
+      return NextResponse.json(
+        { error: 'Cost must be a positive number' },
         { status: 400 }
       )
     }
@@ -164,8 +179,13 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         type: type.trim(),
+        quantity: parseInt(quantity),
+        cost: parseFloat(cost),
+        shipping: parseFloat(shipping || 0),
+        vat: parseFloat(vat || 0),
+        totalCost: parseFloat(totalCost),
         unitCost: parseFloat(unitCost),
-        linkedProducts: linkedProducts ? JSON.stringify(linkedProducts) : null,
+        currentQuantity: parseInt(quantity), // Set initial quantity
         userId: user.id,
       },
       include: {

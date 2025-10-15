@@ -11,8 +11,12 @@ export default function AddPackaging() {
     name: "",
     description: "",
     type: "",
+    quantity: "",
+    cost: "",
+    shipping: "0",
+    vat: "0",
+    totalCost: "",
     unitCost: "",
-    linkedProducts: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,10 +25,33 @@ export default function AddPackaging() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+
+      // Auto-calculate total cost when cost, shipping, or vat changes
+      if (name === 'cost' || name === 'shipping' || name === 'vat') {
+        const cost = name === 'cost' ? parseFloat(value) : parseFloat(prev.cost);
+        const shipping = name === 'shipping' ? parseFloat(value) : parseFloat(prev.shipping);
+        const vat = name === 'vat' ? parseFloat(value) : parseFloat(prev.vat);
+        
+        const totalCost = cost + shipping + vat;
+        newData.totalCost = totalCost.toFixed(2);
+      }
+
+      // Auto-calculate unit cost when total cost or quantity changes
+      if (name === 'totalCost' || name === 'quantity') {
+        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(prev.totalCost);
+        const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
+        
+        if (quantity > 0 && totalCost > 0) {
+          newData.unitCost = (totalCost / quantity).toFixed(2);
+        } else {
+          newData.unitCost = "";
+        }
+      }
+
+      return newData;
+    });
     
     // Clear error when user starts typing
     if (error) setError("");
@@ -42,8 +69,24 @@ export default function AddPackaging() {
 
     try {
       // Validate form
-      if (!formData.name || !formData.type || !formData.unitCost) {
+      if (!formData.name || !formData.type || !formData.quantity || !formData.cost) {
         setError("Please fill in all required fields");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate numeric fields
+      const quantity = parseFloat(formData.quantity);
+      const cost = parseFloat(formData.cost);
+
+      if (quantity <= 0) {
+        setError("Quantity must be greater than 0");
+        setIsLoading(false);
+        return;
+      }
+
+      if (cost <= 0) {
+        setError("Cost must be greater than 0");
         setIsLoading(false);
         return;
       }
@@ -77,8 +120,12 @@ export default function AddPackaging() {
           name: formData.name,
           description: formData.description,
           type: formData.type,
-          unitCost: formData.unitCost,
-          linkedProducts: linkedProducts,
+          quantity: parseInt(formData.quantity),
+          cost: parseFloat(formData.cost),
+          shipping: parseFloat(formData.shipping || 0),
+          vat: parseFloat(formData.vat || 0),
+          totalCost: parseFloat(formData.totalCost),
+          unitCost: parseFloat(formData.unitCost),
         }),
       });
 
@@ -97,8 +144,12 @@ export default function AddPackaging() {
         name: "",
         description: "",
         type: "",
+        quantity: "",
+        cost: "",
+        shipping: "0",
+        vat: "0",
+        totalCost: "",
         unitCost: "",
-        linkedProducts: "",
       });
 
       // Redirect to packaging list after a short delay
@@ -171,11 +222,24 @@ export default function AddPackaging() {
           </div>
 
           <div>
-            <Label>Unit Cost *</Label>
+            <Label>Quantity *</Label>
             <Input
               type="number"
-              name="unitCost"
-              defaultValue={formData.unitCost}
+              name="quantity"
+              defaultValue={formData.quantity}
+              onChange={handleInputChange}
+              placeholder="Enter quantity"
+              step="1"
+              min="1"
+            />
+          </div>
+
+          <div>
+            <Label>Cost *</Label>
+            <Input
+              type="number"
+              name="cost"
+              defaultValue={formData.cost}
               onChange={handleInputChange}
               placeholder="0.00"
               step="0.01"
@@ -184,18 +248,59 @@ export default function AddPackaging() {
           </div>
 
           <div>
-            <Label>Linked Products</Label>
+            <Label>Shipping Cost</Label>
             <Input
-              type="text"
-              name="linkedProducts"
-              defaultValue={formData.linkedProducts}
+              type="number"
+              name="shipping"
+              defaultValue={formData.shipping}
               onChange={handleInputChange}
-              placeholder="Enter product IDs separated by commas (optional)"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Example: prod-123, prod-456, prod-789
-            </p>
           </div>
+
+          <div>
+            <Label>VAT</Label>
+            <Input
+              type="number"
+              name="vat"
+              defaultValue={formData.vat}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label>Total Cost (Auto-calculated)</Label>
+            <Input
+              type="number"
+              name="totalCost"
+              defaultValue={formData.totalCost}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              disabled
+            />
+          </div>
+
+          <div>
+            <Label>Unit Cost (Auto-calculated)</Label>
+            <Input
+              type="number"
+              name="unitCost"
+              defaultValue={formData.unitCost}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              disabled
+            />
+          </div>
+
 
           <div className="lg:col-span-2">
             <Label>Description</Label>
