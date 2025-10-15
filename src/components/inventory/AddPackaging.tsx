@@ -130,8 +130,10 @@ export default function AddPackaging() {
       });
 
       const data = await response.json();
+      console.log('API Response:', response.status, data);
 
       if (!response.ok) {
+        console.error('API Error Response:', data);
         setError(data.error || 'Failed to create packaging item');
         setIsLoading(false);
         return;
@@ -159,6 +161,11 @@ export default function AddPackaging() {
 
     } catch (error) {
       console.error('Packaging creation error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
