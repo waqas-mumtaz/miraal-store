@@ -98,17 +98,7 @@ export default function AddPackaging() {
         return;
       }
 
-      // Parse linked products if provided
-      let linkedProducts = [];
-      if (formData.linkedProducts.trim()) {
-        try {
-          linkedProducts = formData.linkedProducts.split(',').map(id => id.trim()).filter(id => id);
-        } catch (error) {
-          setError("Invalid linked products format. Use comma-separated product IDs.");
-          setIsLoading(false);
-          return;
-        }
-      }
+      // Note: Packaging doesn't need linked products anymore
 
       // Call API to create packaging item
       const response = await fetch('/api/packaging', {
@@ -116,6 +106,7 @@ export default function AddPackaging() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
