@@ -173,6 +173,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug logging
+    console.log('Creating packaging with data:', {
+      name: name.trim(),
+      description: description?.trim() || null,
+      type: type.trim(),
+      quantity: parseInt(quantity),
+      cost: parseFloat(cost),
+      shipping: parseFloat(shipping || 0),
+      vat: parseFloat(vat || 0),
+      totalCost: parseFloat(totalCost),
+      unitCost: parseFloat(unitCost),
+      currentQuantity: parseInt(quantity),
+      userId: user.id,
+    });
+
     // Create the packaging item
     const packaging = await prisma.packaging.create({
       data: {
@@ -233,8 +248,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Packaging creation error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
