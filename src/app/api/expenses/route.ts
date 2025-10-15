@@ -24,6 +24,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Check if user exists in database
+    console.log('User from token:', user);
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id }
+    });
+    console.log('User in database:', dbUser);
+    
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: 'User not found in database' },
+        { status: 401 }
+      )
+    }
+
     const { 
       title, 
       quantity, 
@@ -109,7 +123,12 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Expense creation error:', error)
+    console.error('Expense creation error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -134,6 +153,20 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Debug: Check if user exists in database
+    console.log('User from token (GET):', user);
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id }
+    });
+    console.log('User in database (GET):', dbUser);
+    
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: 'User not found in database' },
         { status: 401 }
       )
     }
@@ -206,7 +239,12 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Expenses fetch error:', error)
+    console.error('Expenses fetch error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
