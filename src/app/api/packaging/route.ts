@@ -138,6 +138,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Check if user exists in database
+    console.log('User from token:', user);
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id }
+    });
+    console.log('User in database:', dbUser);
+    
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: 'User not found in database' },
+        { status: 401 }
+      )
+    }
+
     const { 
       name, 
       description, 
