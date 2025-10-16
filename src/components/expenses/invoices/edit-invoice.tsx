@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import DatePicker from "@/components/form/date-picker";
 
 interface Invoice {
   id: string;
@@ -61,7 +62,7 @@ export default function EditInvoice() {
         invoice_number: invoice.invoice_number,
         supplier_name: invoice.supplier_name,
         supplier_url: invoice.supplier_url || "",
-        date: invoice.date,
+        date: invoice.date.split('T')[0], // Convert to YYYY-MM-DD format for date input
         total_amount: invoice.total_amount?.toString() || "",
         pdf_link: invoice.pdf_link,
         comments: invoice.comments || "",
@@ -95,21 +96,47 @@ export default function EditInvoice() {
     setSuccess("");
 
     try {
-      // Validate required fields
-      if (!formData.invoice_number || !formData.supplier_name || !formData.pdf_link) {
+      // Get current form values from DOM
+      const form = e.currentTarget as HTMLFormElement;
+      const formDataObj = new FormData(form);
+      
+      // Invoice number is not editable, use the existing one from formData
+      const invoice_number = formData.invoice_number;
+      const supplier_name = formDataObj.get('supplier_name') as string;
+      const supplier_url = formDataObj.get('supplier_url') as string;
+      const date = formDataObj.get('date') as string;
+      const total_amount = formDataObj.get('total_amount') as string;
+      const pdf_link = formDataObj.get('pdf_link') as string;
+      const comments = formDataObj.get('comments') as string;
+
+      // Validate required fields (invoice_number is already validated from existing data)
+      if (!supplier_name || supplier_name.trim() === "" || 
+          !pdf_link || pdf_link.trim() === "" || 
+          !date || date.trim() === "") {
         setError("Please fill in all required fields");
         setIsLoading(false);
         return;
       }
 
       // Validate data types
-      const totalAmount = parseFloat(formData.total_amount);
+      const totalAmountNum = parseFloat(total_amount);
       
-      if (formData.total_amount && (isNaN(totalAmount) || totalAmount < 0)) {
+      if (total_amount && (isNaN(totalAmountNum) || totalAmountNum < 0)) {
         setError("Total amount must be a non-negative number");
         setIsLoading(false);
         return;
       }
+
+      // Prepare request data
+      const requestData = {
+        invoice_number,
+        supplier_name,
+        supplier_url: supplier_url || null,
+        date,
+        total_amount: total_amount ? totalAmountNum : null,
+        pdf_link,
+        comments: comments || null,
+      };
 
       // Call API to update invoice
       const response = await fetch(`/api/invoices/${invoiceId}`, {
@@ -118,15 +145,7 @@ export default function EditInvoice() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          invoice_number: formData.invoice_number,
-          supplier_name: formData.supplier_name,
-          supplier_url: formData.supplier_url || null,
-          date: formData.date,
-          total_amount: formData.total_amount ? totalAmount : null,
-          pdf_link: formData.pdf_link,
-          comments: formData.comments || null,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       const data = await response.json();
@@ -147,9 +166,9 @@ export default function EditInvoice() {
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
-  };
+    };
 
-  if (isLoadingData) {
+    if (isLoadingData) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -189,8 +208,9 @@ export default function EditInvoice() {
               type="text"
               name="invoice_number"
               value={formData.invoice_number}
-              onChange={handleInputChange}
-              placeholder="Enter invoice number"
+              disabled={true}
+              placeholder="Invoice number cannot be changed"
+              hint="Invoice number cannot be modified after creation"
             />
           </div>
 
@@ -217,12 +237,22 @@ export default function EditInvoice() {
           </div>
 
           <div>
-            <Label>Date *</Label>
-            <Input
-              type="date"
+            <DatePicker
+              id="edit-invoice-date"
+              label="Date *"
+              defaultDate={formData.date}
+              onChange={(selectedDates) => {
+                if (selectedDates.length > 0) {
+                  const dateStr = selectedDates[0].toISOString().split('T')[0];
+                  setFormData(prev => ({ ...prev, date: dateStr }));
+                }
+              }}
+            />
+            {/* Hidden input for form submission */}
+            <input
+              type="hidden"
               name="date"
               value={formData.date}
-              onChange={handleInputChange}
             />
           </div>
 

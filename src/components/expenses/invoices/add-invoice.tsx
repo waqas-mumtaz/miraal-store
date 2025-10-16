@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import DatePicker from "@/components/form/date-picker";
 
 export default function AddInvoice() {
   const router = useRouter();
@@ -56,6 +57,19 @@ export default function AddInvoice() {
         return;
       }
 
+      // Prepare request data
+      const requestData = {
+        invoice_number: formData.invoice_number,
+        supplier_name: formData.supplier_name,
+        supplier_url: formData.supplier_url || null,
+        date: formData.date,
+        total_amount: formData.total_amount ? totalAmount : null,
+        pdf_link: formData.pdf_link,
+        comments: formData.comments || null,
+      };
+
+      console.log('Sending invoice data:', requestData);
+
       // Call API to create invoice
       const response = await fetch('/api/invoices', {
         method: 'POST',
@@ -63,20 +77,14 @@ export default function AddInvoice() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          invoice_number: formData.invoice_number,
-          supplier_name: formData.supplier_name,
-          supplier_url: formData.supplier_url || null,
-          date: formData.date,
-          total_amount: formData.total_amount ? totalAmount : null,
-          pdf_link: formData.pdf_link,
-          comments: formData.comments || null,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       const data = await response.json();
+      console.log('API Response:', response.status, data);
 
       if (!response.ok) {
+        console.error('API Error Response:', data);
         setError(data.error || 'Failed to create invoice');
         setIsLoading(false);
         return;
@@ -149,12 +157,18 @@ export default function AddInvoice() {
           </div>
 
           <div>
-            <Label>Date *</Label>
-            <Input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
+            <DatePicker
+              id="invoice-date"
+              label="Date *"
+              defaultDate={formData.date}
+              onChange={(selectedDates) => {
+                if (selectedDates.length > 0) {
+                  const dateStr = selectedDates[0].toISOString().split('T')[0];
+                  console.log('DatePicker onChange - selectedDates:', selectedDates);
+                  console.log('DatePicker onChange - dateStr:', dateStr);
+                  setFormData(prev => ({ ...prev, date: dateStr }));
+                }
+              }}
             />
           </div>
 

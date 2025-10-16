@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/button/Button";
 
@@ -16,63 +16,34 @@ interface Invoice {
 }
 
 export default function InvoiceList() {
-  // Dummy data for UI development
-  const [invoices] = useState<Invoice[]>([
-    {
-      id: "1",
-      invoice_number: "INV-2024-001",
-      supplier_name: "Tech Solutions Ltd",
-      supplier_url: "https://techsolutions.com",
-      date: "2024-01-15",
-      total_amount: 1250.00,
-      pdf_link: "https://example.com/invoices/inv-001.pdf",
-      comments: "Monthly software license renewal",
-      createdAt: "2024-01-15T10:30:00Z"
-    },
-    {
-      id: "2",
-      invoice_number: "INV-2024-002",
-      supplier_name: "Office Supplies Co",
-      supplier_url: "https://officesupplies.com",
-      date: "2024-01-20",
-      total_amount: 89.50,
-      pdf_link: "https://example.com/invoices/inv-002.pdf",
-      comments: "Office stationery and supplies",
-      createdAt: "2024-01-20T14:15:00Z"
-    },
-    {
-      id: "3",
-      invoice_number: "INV-2024-003",
-      supplier_name: "Cloud Services Inc",
-      supplier_url: "https://cloudservices.com",
-      date: "2024-01-25",
-      total_amount: 450.00,
-      pdf_link: "https://example.com/invoices/inv-003.pdf",
-      comments: "Cloud hosting and storage services",
-      createdAt: "2024-01-25T09:45:00Z"
-    },
-    {
-      id: "4",
-      invoice_number: "INV-2024-004",
-      supplier_name: "Marketing Agency",
-      date: "2024-01-30",
-      total_amount: 2100.00,
-      pdf_link: "https://example.com/invoices/inv-004.pdf",
-      comments: "Digital marketing campaign",
-      createdAt: "2024-01-30T16:20:00Z"
-    },
-    {
-      id: "5",
-      invoice_number: "INV-2024-005",
-      supplier_name: "Legal Services",
-      supplier_url: "https://legalservices.com",
-      date: "2024-02-05",
-      total_amount: 750.00,
-      pdf_link: "https://example.com/invoices/inv-005.pdf",
-      comments: "Contract review and consultation",
-      createdAt: "2024-02-05T11:10:00Z"
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/invoices', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoices');
+      }
+
+      const data = await response.json();
+      setInvoices(data.invoices || []);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      setError('Failed to load invoices');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return "N/A";
@@ -89,6 +60,39 @@ export default function InvoiceList() {
       day: 'numeric'
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto"></div>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Loading invoices...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invoice List</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your invoices and billing information.</p>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-400">{error}</p>
+          <Button 
+            onClick={fetchInvoices} 
+            className="mt-2"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

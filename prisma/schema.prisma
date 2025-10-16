@@ -28,6 +28,7 @@ model User {
   expenses  Expense[]
   products Product[]
   packaging Packaging[]
+  invoices Invoice[]
   productExpenses ProductExpense[]
   packagingExpenses PackagingExpense[]
   productReplenishments ProductReplenishment[]
@@ -211,6 +212,26 @@ model PackagingReplenishment {
   expense         Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 
   @@map("packaging_replenishments")
+}
+
+// Invoice model for tracking invoices
+model Invoice {
+  id              String   @id @default(cuid())
+  invoice_number  String
+  supplier_name   String
+  supplier_url    String?
+  date            DateTime
+  total_amount    Decimal? @db.Decimal(10, 2)
+  pdf_link        String
+  comments        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
 }
 
 
