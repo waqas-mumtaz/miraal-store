@@ -32,6 +32,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Expense List", path: "/expenses", pro: false },
       { name: "Add Expense", path: "/expenses/add", pro: false },
+      { name: "Invoices", path: "/expenses/invoices", pro: false },
     ],
   },
   {
