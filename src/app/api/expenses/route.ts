@@ -125,9 +125,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Expense creation error:', error);
     console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any)?.code,
+      meta: (error as any)?.meta
     });
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -241,9 +241,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Expenses fetch error:', error);
     console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any)?.code,
+      meta: (error as any)?.meta
     });
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -161,7 +161,7 @@ export default function ReplenishForm({ inventoryItemId, onSuccess, onCancel }: 
               onChange={handleInputChange}
               placeholder="Enter quantity"
               min="1"
-              step="1"
+              step={1}
             />
           </div>
 
@@ -173,7 +173,7 @@ export default function ReplenishForm({ inventoryItemId, onSuccess, onCancel }: 
               defaultValue={formData.cost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -217,7 +217,7 @@ export default function ReplenishForm({ inventoryItemId, onSuccess, onCancel }: 
               <option value="">Select an expense (optional)</option>
               {expenses.map((expense) => (
                 <option key={expense.id} value={expense.id}>
-                  {expense.title} - {new Date(expense.date).toLocaleDateString()} - ${expense.totalAmount}
+                  {expense.title} - {new Date(expense.date).toLocaleDateString()} - €{expense.totalAmount}
                 </option>
               ))}
             </select>

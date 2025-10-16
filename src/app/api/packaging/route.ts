@@ -87,7 +87,6 @@ export async function GET(request: NextRequest) {
         totalCost: item.totalCost || 0,
         currentQuantity: item.currentQuantity,
         unitCost: item.unitCost,
-        totalCOG: item.totalCOG,
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
@@ -263,12 +262,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Packaging creation error:', error)
     console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any)?.code,
+      meta: (error as any)?.meta
     })
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -10,7 +10,7 @@ export async function POST(
     const { id: packagingId } = await params;
     
     // Verify authentication
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -21,12 +21,12 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { quantity, cost, date, invoiceLink, comments } = body;
+    const { quantity, cost, shipping, vat, totalCost, unitCost, date, invoiceLink, comments, expenseId } = body;
 
     // Validate required fields
-    if (!quantity || !cost || !date) {
+    if (!quantity || !cost || !shipping || !vat || !date) {
       return NextResponse.json(
-        { error: "Quantity, cost, and date are required" },
+        { error: "Quantity, cost, shipping, VAT, and date are required" },
         { status: 400 }
       );
     }
@@ -34,6 +34,12 @@ export async function POST(
     // Validate data types
     const quantityNum = parseInt(quantity);
     const costNum = parseFloat(cost);
+    const shippingNum = parseFloat(shipping);
+    const vatNum = parseFloat(vat);
+    
+    // Calculate total cost and unit cost if not provided
+    const totalCostNum = totalCost ? parseFloat(totalCost) : costNum + shippingNum + vatNum;
+    const unitCostNum = unitCost ? parseFloat(unitCost) : (quantityNum > 0 ? totalCostNum / quantityNum : 0);
     
     if (isNaN(quantityNum) || quantityNum <= 0) {
       return NextResponse.json(
@@ -42,15 +48,40 @@ export async function POST(
       );
     }
 
-    if (isNaN(costNum) || costNum <= 0) {
+    if (isNaN(costNum) || costNum < 0) {
       return NextResponse.json(
-        { error: "Cost must be a positive number" },
+        { error: "Cost must be a non-negative number" },
         { status: 400 }
       );
     }
 
-    // Calculate unit cost
-    const unitCost = costNum / quantityNum;
+    if (isNaN(shippingNum) || shippingNum < 0) {
+      return NextResponse.json(
+        { error: "Shipping must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
+    if (isNaN(vatNum) || vatNum < 0) {
+      return NextResponse.json(
+        { error: "VAT must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
+    if (totalCost && (isNaN(totalCostNum) || totalCostNum < 0)) {
+      return NextResponse.json(
+        { error: "Total cost must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
+    if (unitCost && (isNaN(unitCostNum) || unitCostNum < 0)) {
+      return NextResponse.json(
+        { error: "Unit cost must be a non-negative number" },
+        { status: 400 }
+      );
+    }
 
     // Check if packaging item exists and belongs to user
     const packaging = await prisma.packaging.findFirst({
@@ -69,18 +100,25 @@ export async function POST(
       data: {
         quantity: quantityNum,
         cost: costNum,
-        unitCost: unitCost,
+        shipping: shippingNum,
+        vat: vatNum,
+        totalCost: totalCostNum,
+        unitCost: unitCostNum,
         date: new Date(date),
         invoiceLink: invoiceLink || null,
         comments: comments || null,
+        expenseId: expenseId || null,
         packagingId: packagingId,
         userId: user.id,
       },
     });
 
-    // Update packaging quantity and total COG
-    const newQuantity = packaging.currentQuantity + quantityNum;
-    const newTotalCOG = packaging.totalCOG + costNum;
+    // Update packaging quantity and costs
+    const newQuantity = Number(packaging.currentQuantity) + quantityNum;
+    const newCost = Number(packaging.cost || 0) + costNum;
+    const newShipping = Number(packaging.shipping || 0) + shippingNum;
+    const newVat = Number(packaging.vat || 0) + vatNum;
+    const newTotalCost = Number(packaging.totalCost || 0) + totalCostNum;
 
     await prisma.packaging.update({
       where: {
@@ -88,8 +126,11 @@ export async function POST(
       },
       data: {
         currentQuantity: newQuantity,
-        totalCOG: newTotalCOG,
-        unitCost: newTotalCOG / newQuantity, // Recalculate average unit cost
+        cost: newCost,
+        shipping: newShipping,
+        vat: newVat,
+        totalCost: newTotalCost,
+        unitCost: newTotalCost / newQuantity, // Recalculate average unit cost
         updatedAt: new Date(),
       },
     });

@@ -1,603 +1,156 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  sku?: string;
-  currentQuantity: number;
-  unitCost: number;
-  totalCOG: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  linkedExpenses: {
-    id: string;
-    allocatedCost: number;
-    expense: {
-      id: string;
-      title: string;
-      date: string;
-      totalAmount: number;
-    };
-  }[];
-  lastReplenishment?: {
-    id: string;
-    quantity: number;
-    cost: number;
-    date: string;
-  } | null;
-}
-
-interface Packaging {
-  id: string;
-  name: string;
-  description?: string;
-  type: string;
-  currentQuantity: number;
-  unitCost: number;
-  totalCOG: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  linkedExpenses: {
-    id: string;
-    allocatedCost: number;
-    expense: {
-      id: string;
-      title: string;
-      date: string;
-      totalAmount: number;
-    };
-  }[];
-  lastReplenishment?: {
-    id: string;
-    quantity: number;
-    cost: number;
-    date: string;
-  } | null;
-}
 
 export default function InventoryManagement() {
-  const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<'products' | 'packaging'>('products');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [packagingItems, setPackagingItems] = useState<Packaging[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-
-  // Set initial tab based on URL
-  useEffect(() => {
-    if (pathname.includes('/packaging')) {
-      setActiveTab('packaging');
-    } else {
-      setActiveTab('products');
-    }
-  }, [pathname]);
-
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      setError("");
-
-      if (activeTab === 'products') {
-        console.log('Fetching products...');
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        console.log('Products response:', { status: response.status, data });
-
-        if (!response.ok) {
-          setError(data.error || 'Failed to fetch products');
-          return;
-        }
-
-        setProducts(data.products || []);
-      } else {
-        console.log('Fetching packaging...');
-        const response = await fetch('/api/packaging');
-        const data = await response.json();
-        console.log('Packaging response:', { status: response.status, data });
-
-        if (!response.ok) {
-          setError(data.error || 'Failed to fetch packaging items');
-          return;
-        }
-
-        setPackagingItems(data.packagingItems || []);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Failed to fetch data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getQuantityStatus = (quantity: number) => {
-    if (quantity === 0) {
-      return { label: 'Out of Stock', color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20' };
-    } else if (quantity <= 10) {
-      return { label: 'Low Stock', color: 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20' };
-    } else {
-      return { label: 'In Stock', color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20' };
-    }
-  };
-
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-      return;
-    }
-
-    setDeleteLoading(productId);
-    try {
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete product');
-      }
-
-      // Remove from local state
-      setProducts(prev => prev.filter(product => product.id !== productId));
-    } catch (error) {
-      console.error('Delete product error:', error);
-      alert('Failed to delete product. Please try again.');
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
-
-  const handleDeletePackaging = async (packagingId: string) => {
-    if (!confirm('Are you sure you want to delete this packaging item? This action cannot be undone.')) {
-      return;
-    }
-
-    setDeleteLoading(packagingId);
-    try {
-      const response = await fetch(`/api/packaging/${packagingId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete packaging item');
-      }
-
-      // Remove from local state
-      setPackagingItems(prev => prev.filter(item => item.id !== packagingId));
-    } catch (error) {
-      console.error('Delete packaging error:', error);
-      alert('Failed to delete packaging item. Please try again.');
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Inventory Management
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Overview and metrics for your inventory
+        </p>
       </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-        <div className="px-4 py-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
-          {error}
+      {/* Metrics Dashboard - Coming Soon */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Products</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Packaging</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+              <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Value</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">€-</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Low Stock Items</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-            Inventory Management
-          </h4>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage your products and packaging inventory with COG calculation
+      {/* Quick Actions */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/inventory/products/add"
+            className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+          >
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-3">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">Add Product</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Create new product</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/inventory/packaging/add"
+            className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+          >
+            <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg mr-3">
+              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">Add Packaging</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Create new packaging</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/inventory/products"
+            className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+          >
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg mr-3">
+              <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">View Products</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Manage products</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/inventory/packaging"
+            className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+          >
+            <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg mr-3">
+              <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">View Packaging</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Manage packaging</p>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Coming Soon Message */}
+      <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="text-center">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Advanced Metrics Coming Soon</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            We&apos;re working on detailed analytics, charts, and insights for your inventory management.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {activeTab === 'products' ? (
-            <Link
-              href="/inventory/products/add"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Product
-            </Link>
-          ) : (
-            <Link
-              href="/inventory/packaging/add"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Packaging
-            </Link>
-          )}
-        </div>
       </div>
-
-      {/* Tabs */}
-      <div className="mt-6">
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'products'
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              Products ({products.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('packaging')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'packaging'
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              Packaging ({packagingItems.length})
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="mt-6">
-        {activeTab === 'products' ? (
-          <ProductsTable 
-            products={products} 
-            formatCurrency={formatCurrency} 
-            formatDate={formatDate} 
-            getQuantityStatus={getQuantityStatus}
-            onDelete={handleDeleteProduct}
-            deleteLoading={deleteLoading}
-          />
-        ) : (
-          <PackagingTable 
-            packagingItems={packagingItems} 
-            formatCurrency={formatCurrency} 
-            formatDate={formatDate} 
-            getQuantityStatus={getQuantityStatus}
-            onDelete={handleDeletePackaging}
-            deleteLoading={deleteLoading}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Products Table Component
-function ProductsTable({ products, formatCurrency, formatDate, getQuantityStatus, onDelete, deleteLoading }: {
-  products: Product[];
-  formatCurrency: (amount: number) => string;
-  formatDate: (dateString: string) => string;
-  getQuantityStatus: (quantity: number) => { label: string; color: string };
-  onDelete: (productId: string) => void;
-  deleteLoading: string | null;
-}) {
-  if (products.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          No products found
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
-          Get started by adding your first product.
-        </p>
-        <Link
-          href="/inventory/products/add"
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add First Product
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Product</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">SKU</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Quantity</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Unit Cost</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Total COG</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Status</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Linked Expenses</th>
-            <th className="text-center py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => {
-            const status = getQuantityStatus(product.currentQuantity);
-            const totalValue = product.currentQuantity * product.unitCost;
-            
-            return (
-              <tr key={product.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td className="py-4 px-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {product.name}
-                    </span>
-                    {product.description && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {product.description}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="py-4 px-4 text-gray-900 dark:text-white">
-                  {product.sku || '-'}
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {product.currentQuantity}
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-gray-900 dark:text-white">
-                  {formatCurrency(product.unitCost)}
-                </td>
-                <td className="py-4 px-4 text-gray-900 dark:text-white font-medium">
-                  {formatCurrency(product.totalCOG)}
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>
-                    {status.label}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {product.linkedExpenses.length} expense{product.linkedExpenses.length !== 1 ? 's' : ''}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <Link
-                      href={`/inventory/products/${product.id}`}
-                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                      title="View Details"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href={`/inventory/products/edit/${product.id}`}
-                      className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                      title="Edit Product"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <button
-                      onClick={() => onDelete(product.id)}
-                      disabled={deleteLoading === product.id}
-                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Delete Product"
-                    >
-                      {deleteLoading === product.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      )}
-                    </button>
-                    {product.currentQuantity === 0 && (
-                      <Link
-                        href={`/inventory/products/${product.id}?replenish=true`}
-                        className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                        title="Replenish Now"
-                      >
-                        Replenish
-                      </Link>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// Packaging Table Component
-function PackagingTable({ packagingItems, formatCurrency, formatDate, getQuantityStatus, onDelete, deleteLoading }: {
-  packagingItems: Packaging[];
-  formatCurrency: (amount: number) => string;
-  formatDate: (dateString: string) => string;
-  getQuantityStatus: (quantity: number) => { label: string; color: string };
-  onDelete: (packagingId: string) => void;
-  deleteLoading: string | null;
-}) {
-  if (packagingItems.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          No packaging items found
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
-          Get started by adding your first packaging item.
-        </p>
-        <Link
-          href="/inventory/packaging/add"
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add First Packaging
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Packaging</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Type</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Quantity</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Unit Cost</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Total COG</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Status</th>
-            <th className="text-center py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {packagingItems.map((item) => {
-            const status = getQuantityStatus(item.currentQuantity);
-            const totalValue = item.currentQuantity * item.unitCost;
-            
-            return (
-              <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td className="py-4 px-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {item.name}
-                    </span>
-                    {item.description && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {item.description}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
-                    {item.type}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {item.currentQuantity}
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-gray-900 dark:text-white">
-                  {formatCurrency(item.unitCost)}
-                </td>
-                <td className="py-4 px-4 text-gray-900 dark:text-white font-medium">
-                  {formatCurrency(item.totalCOG)}
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>
-                    {status.label}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <Link
-                      href={`/inventory/packaging/${item.id}`}
-                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                      title="View Details"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href={`/inventory/packaging/edit/${item.id}`}
-                      className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                      title="Edit Packaging"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <button
-                      onClick={() => onDelete(item.id)}
-                      disabled={deleteLoading === item.id}
-                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Delete Packaging"
-                    >
-                      {deleteLoading === item.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      )}
-                    </button>
-                    {item.currentQuantity === 0 && (
-                      <Link
-                        href={`/inventory/packaging/${item.id}?replenish=true`}
-                        className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                        title="Replenish Now"
-                      >
-                        Replenish
-                      </Link>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }

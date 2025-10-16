@@ -74,7 +74,7 @@ export async function GET(
     }
 
     // Calculate total COG from linked expenses
-    const totalCOG = product.linkedExpenses.reduce((sum, link) => sum + link.allocatedCost, 0)
+    const totalCOG = product.linkedExpenses.reduce((sum, link) => sum + Number(link.allocatedCost), 0)
 
     return NextResponse.json({
       product: {

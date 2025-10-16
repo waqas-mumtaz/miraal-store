@@ -1,4 +1,4 @@
-import EditProduct from "@/components/inventory/EditProduct";
+import { EditProduct } from "@/components/inventory/product";
 import { Metadata } from "next";
 import React from "react";
 

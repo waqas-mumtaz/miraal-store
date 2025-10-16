@@ -10,7 +10,7 @@ export async function GET(
     const { id: packagingId } = await params;
     
     // Verify authentication
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -63,7 +63,7 @@ export async function PUT(
     const { id: packagingId } = await params;
     
     // Verify authentication
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -74,7 +74,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, description, type, unitCost, linkedProducts } = body;
+    const { name, description, type, quantity, cost, unitCost, shipping, vat, totalCost } = body;
 
     // Validate required fields
     if (!name || !type || !unitCost) {
@@ -102,8 +102,12 @@ export async function PUT(
         name,
         description: description || null,
         type,
+        quantity: quantity ? parseInt(quantity) : null,
+        cost: cost ? parseFloat(cost) : null,
         unitCost: parseFloat(unitCost),
-        linkedProducts: linkedProducts || null,
+        shipping: shipping ? parseFloat(shipping) : null,
+        vat: vat ? parseFloat(vat) : null,
+        totalCost: totalCost ? parseFloat(totalCost) : null,
         updatedAt: new Date(),
       },
     });
@@ -127,7 +131,7 @@ export async function DELETE(
     const { id: packagingId } = await params;
     
     // Verify authentication
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -348,7 +348,7 @@ export default function EditProduct() {
               defaultValue={formData.quantity}
               onChange={handleInputChange}
               placeholder="0"
-              step="1"
+              step={1}
               min="1"
             />
           </div>
@@ -361,7 +361,7 @@ export default function EditProduct() {
               defaultValue={formData.cost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -374,7 +374,7 @@ export default function EditProduct() {
               defaultValue={formData.shipping}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -387,7 +387,7 @@ export default function EditProduct() {
               defaultValue={formData.vat}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -400,7 +400,7 @@ export default function EditProduct() {
               defaultValue={formData.totalCost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
               disabled
             />
@@ -447,7 +447,7 @@ export default function EditProduct() {
                 defaultValue={formData.miscCost}
                 onChange={handleInputChange}
                 placeholder="0.10"
-                step="0.01"
+                step={0.01}
                 min="0"
               />
             </div>
@@ -461,7 +461,7 @@ export default function EditProduct() {
               defaultValue={formData.unitCost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
               disabled
             />

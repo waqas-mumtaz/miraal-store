@@ -1,4 +1,4 @@
-import EditPackaging from "@/components/inventory/EditPackaging";
+import { EditPackaging } from "@/components/inventory/packaging";
 import { Metadata } from "next";
 import React from "react";
 

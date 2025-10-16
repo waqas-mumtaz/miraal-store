@@ -1,32 +1,64 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 
-export default function AddPackaging() {
+interface Packaging {
+  id: string;
+  name: string;
+  unitCost: number;
+}
+
+export default function AddProduct() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "",
+    sku: "",
     quantity: "",
     cost: "",
     shipping: "0",
     vat: "0",
     totalCost: "",
+    type: "FBM",
+    linkedPackaging: "",
+    packagingCost: "0",
+    miscCost: "0.1",
     unitCost: "",
   });
+  const [packagingOptions, setPackagingOptions] = useState<Packaging[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Fetch packaging options on component mount
+  useEffect(() => {
+    const fetchPackaging = async () => {
+      try {
+        const response = await fetch('/api/packaging', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setPackagingOptions(data.packaging || []);
+        }
+      } catch (error) {
+        console.error('Error fetching packaging:', error);
+      }
+    };
+    fetchPackaging();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     setFormData(prev => {
-      const newData = { ...prev, [name]: value };
+      const newData = {
+        ...prev,
+        [name]: value
+      };
 
       // Auto-calculate total cost when cost, shipping, or vat changes
       if (name === 'cost' || name === 'shipping' || name === 'vat') {
@@ -39,14 +71,35 @@ export default function AddPackaging() {
       }
 
       // Auto-calculate unit cost when total cost or quantity changes
-      if (name === 'totalCost' || name === 'quantity' || name === 'cost' || name === 'shipping' || name === 'vat') {
-        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(newData.totalCost);
+      if (name === 'totalCost' || name === 'quantity' || name === 'linkedPackaging' || name === 'miscCost') {
+        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(prev.totalCost);
         const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
+        const packagingCost = name === 'linkedPackaging' ? 
+          (value ? packagingOptions.find(p => p.id === value)?.unitCost || 0 : 0) : 
+          parseFloat(prev.packagingCost);
+        const miscCost = name === 'miscCost' ? parseFloat(value) : parseFloat(prev.miscCost);
         
         if (quantity > 0 && totalCost > 0) {
-          newData.unitCost = (totalCost / quantity).toFixed(2);
+          if (prev.type === 'FBM') {
+            const baseUnitCost = totalCost / quantity;
+            const additionalCosts = packagingCost + miscCost;
+            newData.unitCost = (baseUnitCost + additionalCosts).toFixed(2);
+            if (name === 'linkedPackaging') {
+              newData.packagingCost = packagingCost.toString();
+            }
+          } else {
+            newData.unitCost = (totalCost / quantity).toFixed(2);
+          }
         } else {
           newData.unitCost = "";
+        }
+      }
+
+      // Handle type change
+      if (name === 'type') {
+        if (value === 'FBA') {
+          newData.linkedPackaging = "";
+          newData.packagingCost = "0";
         }
       }
 
@@ -69,39 +122,34 @@ export default function AddPackaging() {
 
     try {
       // Validate form
-      if (!formData.name || !formData.type || !formData.quantity || !formData.cost) {
+      if (!formData.name || !formData.quantity || !formData.cost || !formData.type) {
         setError("Please fill in all required fields");
         setIsLoading(false);
         return;
       }
 
-      // Validate numeric fields
-      const quantity = parseFloat(formData.quantity);
-      const cost = parseFloat(formData.cost);
-
-      if (quantity <= 0) {
-        setError("Quantity must be greater than 0");
-        setIsLoading(false);
-        return;
-      }
-
-      if (cost <= 0) {
-        setError("Cost must be greater than 0");
-        setIsLoading(false);
-        return;
-      }
-
       // Validate data types
-      if (isNaN(parseFloat(formData.unitCost)) || parseFloat(formData.unitCost) <= 0) {
-        setError("Unit cost must be a positive number");
+      if (isNaN(parseFloat(formData.quantity)) || parseFloat(formData.quantity) <= 0) {
+        setError("Quantity must be a positive number");
         setIsLoading(false);
         return;
       }
 
-      // Note: Packaging doesn't need linked products anymore
+      if (isNaN(parseFloat(formData.cost)) || parseFloat(formData.cost) <= 0) {
+        setError("Cost must be a positive number");
+        setIsLoading(false);
+        return;
+      }
 
-      // Call API to create packaging item
-      const response = await fetch('/api/packaging', {
+      // Validate FBM packaging requirement
+      if (formData.type === 'FBM' && !formData.linkedPackaging) {
+        setError("Please select packaging for FBM products");
+        setIsLoading(false);
+        return;
+      }
+
+      // Call API to create product
+      const response = await fetch('/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,53 +158,54 @@ export default function AddPackaging() {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
-          type: formData.type,
+          sku: formData.sku,
           quantity: parseInt(formData.quantity),
           cost: parseFloat(formData.cost),
-          shipping: parseFloat(formData.shipping || 0),
-          vat: parseFloat(formData.vat || 0),
+          shipping: parseFloat(formData.shipping),
+          vat: parseFloat(formData.vat),
           totalCost: parseFloat(formData.totalCost),
+          type: formData.type,
+          linkedPackaging: formData.linkedPackaging || null,
+          packagingCost: parseFloat(formData.packagingCost),
+          miscCost: parseFloat(formData.miscCost),
           unitCost: parseFloat(formData.unitCost),
         }),
       });
 
       const data = await response.json();
-      console.log('API Response:', response.status, data);
 
       if (!response.ok) {
-        console.error('API Error Response:', data);
-        setError(data.error || 'Failed to create packaging item');
+        setError(data.error || 'Failed to create product');
         setIsLoading(false);
         return;
       }
 
-      setSuccess("Packaging item created successfully!");
+      setSuccess("Product created successfully!");
       
       // Reset form
       setFormData({
         name: "",
         description: "",
-        type: "",
+        sku: "",
         quantity: "",
         cost: "",
         shipping: "0",
         vat: "0",
         totalCost: "",
+        type: "FBM",
+        linkedPackaging: "",
+        packagingCost: "0",
+        miscCost: "0.1",
         unitCost: "",
       });
 
-      // Redirect to packaging list after a short delay
+      // Redirect to products list after a short delay
       setTimeout(() => {
-        router.push("/inventory/packaging");
+        router.push("/inventory/products");
       }, 2000);
 
     } catch (error) {
-      console.error('Packaging creation error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
+      console.error('Product creation error:', error);
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
@@ -167,10 +216,10 @@ export default function AddPackaging() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-            Add Packaging Item
+            Add Product
           </h4>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Create a new packaging item for your inventory
+            Create a new product for your inventory
           </p>
         </div>
       </div>
@@ -190,33 +239,25 @@ export default function AddPackaging() {
       <form onSubmit={handleSubmit} className="mt-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div>
-            <Label>Packaging Name *</Label>
+            <Label>Product Name *</Label>
             <Input
               type="text"
               name="name"
               defaultValue={formData.name}
               onChange={handleInputChange}
-              placeholder="Enter packaging name"
+              placeholder="Enter product name"
             />
           </div>
 
           <div>
-            <Label>Type *</Label>
-            <select
-              name="type"
-              defaultValue={formData.type}
+            <Label>SKU</Label>
+            <Input
+              type="text"
+              name="sku"
+              defaultValue={formData.sku}
               onChange={handleInputChange}
-              className="h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-            >
-              <option value="">Select packaging type</option>
-              <option value="Box">Box</option>
-              <option value="Bubble Wrap">Bubble Wrap</option>
-              <option value="Tape">Tape</option>
-              <option value="Poly Mailer">Poly Mailer</option>
-              <option value="Envelope">Envelope</option>
-              <option value="Packing Peanuts">Packing Peanuts</option>
-              <option value="Other">Other</option>
-            </select>
+              placeholder="Enter product SKU (optional)"
+            />
           </div>
 
           <div>
@@ -226,8 +267,8 @@ export default function AddPackaging() {
               name="quantity"
               defaultValue={formData.quantity}
               onChange={handleInputChange}
-              placeholder="Enter quantity"
-              step="1"
+              placeholder="0"
+              step={1}
               min="1"
             />
           </div>
@@ -240,20 +281,20 @@ export default function AddPackaging() {
               defaultValue={formData.cost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
 
           <div>
-            <Label>Shipping Cost</Label>
+            <Label>Shipping</Label>
             <Input
               type="number"
               name="shipping"
               defaultValue={formData.shipping}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -266,7 +307,7 @@ export default function AddPackaging() {
               defaultValue={formData.vat}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
             />
           </div>
@@ -279,11 +320,58 @@ export default function AddPackaging() {
               defaultValue={formData.totalCost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
               disabled
             />
           </div>
+
+          <div>
+            <Label>Type *</Label>
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              className="h-12 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+            >
+              <option value="FBM">FBM (Fulfilled by Merchant)</option>
+              <option value="FBA">FBA (Fulfilled by Amazon)</option>
+            </select>
+          </div>
+
+          {formData.type === 'FBM' && (
+            <div>
+              <Label>Linked Packaging *</Label>
+              <select
+                name="linkedPackaging"
+                value={formData.linkedPackaging}
+                onChange={handleInputChange}
+                className="h-12 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+              >
+                <option value="">Select packaging</option>
+                {packagingOptions.map((packaging) => (
+                  <option key={packaging.id} value={packaging.id}>
+                    {packaging.name} (€{packaging.unitCost.toFixed(2)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {formData.type === 'FBM' && (
+            <div>
+              <Label>Miscellaneous Cost</Label>
+              <Input
+                type="number"
+                name="miscCost"
+                defaultValue={formData.miscCost}
+                onChange={handleInputChange}
+                placeholder="0.10"
+                step={0.01}
+                min="0"
+              />
+            </div>
+          )}
 
           <div>
             <Label>Unit Cost (Auto-calculated)</Label>
@@ -293,12 +381,11 @@ export default function AddPackaging() {
               defaultValue={formData.unitCost}
               onChange={handleInputChange}
               placeholder="0.00"
-              step="0.01"
+              step={0.01}
               min="0"
               disabled
             />
           </div>
-
 
           <div className="lg:col-span-2">
             <Label>Description</Label>
@@ -306,7 +393,7 @@ export default function AddPackaging() {
               name="description"
               defaultValue={formData.description}
               onChange={handleInputChange}
-              placeholder="Enter packaging description (optional)"
+              placeholder="Enter product description (optional)"
               className="h-24 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
             />
           </div>
@@ -326,7 +413,7 @@ export default function AddPackaging() {
             onClick={() => handleSubmit()}
             disabled={isLoading}
           >
-            {isLoading ? 'Creating...' : 'Create Packaging'}
+            {isLoading ? 'Creating...' : 'Create Product'}
           </Button>
         </div>
       </form>

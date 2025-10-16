@@ -111,8 +111,6 @@ model Packaging {
   totalCost       Decimal  @db.Decimal(10, 2) @default(0) // New field
   currentQuantity Int      @default(0)
   unitCost        Decimal  @db.Decimal(10, 2)
-  totalCOG        Decimal  @db.Decimal(10, 2) @default(0) // Total Cost of Goods
-  linkedProducts  String?  // JSON array of product IDs that use this packaging
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -192,6 +190,9 @@ model PackagingReplenishment {
   id              String   @id @default(cuid())
   quantity        Int
   cost            Decimal  @db.Decimal(10, 2)
+  shipping        Decimal  @db.Decimal(10, 2) @default(0)
+  vat             Decimal  @db.Decimal(10, 2) @default(0)
+  totalCost       Decimal  @db.Decimal(10, 2)
   unitCost        Decimal  @db.Decimal(10, 2)
   date            DateTime
   invoiceLink     String?

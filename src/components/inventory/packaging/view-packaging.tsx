@@ -10,10 +10,13 @@ interface Packaging {
   name: string;
   description?: string;
   type: string;
+  quantity?: number;
+  cost?: number;
   currentQuantity: number;
   unitCost: number;
-  totalCOG: number;
-  linkedProducts?: string;
+  shipping?: number;
+  vat?: number;
+  totalCost?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +34,9 @@ interface Packaging {
     id: string;
     quantity: number;
     cost: number;
+    shipping: number;
+    vat: number;
+    totalCost: number;
     unitCost: number;
     date: string;
     invoiceLink?: string;
@@ -55,6 +61,10 @@ export default function PackagingDetail() {
   const [replenishData, setReplenishData] = useState({
     quantity: "",
     cost: "",
+    shipping: "0",
+    vat: "0",
+    totalCost: "",
+    unitCost: "",
     date: new Date().toISOString().split('T')[0],
     invoiceLink: "",
     comments: "",
@@ -93,10 +103,34 @@ export default function PackagingDetail() {
 
   const handleReplenishInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setReplenishData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    setReplenishData(prev => {
+      const newData = { ...prev, [name]: value };
+
+      // Auto-calculate total cost when cost, shipping, or vat changes
+      if (name === 'cost' || name === 'shipping' || name === 'vat') {
+        const cost = name === 'cost' ? parseFloat(value) : parseFloat(prev.cost);
+        const shipping = name === 'shipping' ? parseFloat(value) : parseFloat(prev.shipping);
+        const vat = name === 'vat' ? parseFloat(value) : parseFloat(prev.vat);
+        
+        const totalCost = cost + shipping + vat;
+        newData.totalCost = totalCost.toFixed(2);
+      }
+
+      // Auto-calculate unit cost when total cost or quantity changes
+      if (name === 'totalCost' || name === 'quantity' || name === 'cost' || name === 'shipping' || name === 'vat') {
+        const totalCost = name === 'totalCost' ? parseFloat(value) : parseFloat(newData.totalCost);
+        const quantity = name === 'quantity' ? parseFloat(value) : parseFloat(prev.quantity);
+        
+        if (quantity > 0) {
+          newData.unitCost = (totalCost / quantity).toFixed(2);
+        } else {
+          newData.unitCost = "";
+        }
+      }
+
+      return newData;
+    });
     
     if (replenishError) setReplenishError("");
     if (replenishSuccess) setReplenishSuccess("");
@@ -113,7 +147,7 @@ export default function PackagingDetail() {
 
     try {
       // Validate form
-      if (!replenishData.quantity || !replenishData.cost || !replenishData.date) {
+      if (!replenishData.quantity || !replenishData.cost || replenishData.shipping === "" || replenishData.vat === "" || !replenishData.date) {
         setReplenishError("Please fill in all required fields");
         setIsReplenishing(false);
         return;
@@ -122,6 +156,10 @@ export default function PackagingDetail() {
       // Validate data types
       const quantity = parseInt(replenishData.quantity);
       const cost = parseFloat(replenishData.cost);
+      const shipping = parseFloat(replenishData.shipping);
+      const vat = parseFloat(replenishData.vat);
+      const totalCost = parseFloat(replenishData.totalCost);
+      const unitCost = parseFloat(replenishData.unitCost);
       
       if (isNaN(quantity) || quantity <= 0) {
         setReplenishError("Quantity must be a positive number");
@@ -129,8 +167,32 @@ export default function PackagingDetail() {
         return;
       }
 
-      if (isNaN(cost) || cost <= 0) {
-        setReplenishError("Cost must be a positive number");
+      if (isNaN(cost) || cost < 0) {
+        setReplenishError("Cost must be a non-negative number");
+        setIsReplenishing(false);
+        return;
+      }
+
+      if (isNaN(shipping) || shipping < 0) {
+        setReplenishError("Shipping must be a non-negative number");
+        setIsReplenishing(false);
+        return;
+      }
+
+      if (isNaN(vat) || vat < 0) {
+        setReplenishError("VAT must be a non-negative number");
+        setIsReplenishing(false);
+        return;
+      }
+
+      if (isNaN(totalCost) || totalCost < 0) {
+        setReplenishError("Total cost must be a non-negative number");
+        setIsReplenishing(false);
+        return;
+      }
+
+      if (isNaN(unitCost) || unitCost < 0) {
+        setReplenishError("Unit cost must be a non-negative number");
         setIsReplenishing(false);
         return;
       }
@@ -144,6 +206,10 @@ export default function PackagingDetail() {
         body: JSON.stringify({
           quantity: quantity,
           cost: cost,
+          shipping: shipping,
+          vat: vat,
+          totalCost: totalCost,
+          unitCost: unitCost,
           date: replenishData.date,
           invoiceLink: replenishData.invoiceLink,
           comments: replenishData.comments,
@@ -164,6 +230,10 @@ export default function PackagingDetail() {
       setReplenishData({
         quantity: "",
         cost: "",
+        shipping: "0",
+        vat: "0",
+        totalCost: "",
+        unitCost: "",
         date: new Date().toISOString().split('T')[0],
         invoiceLink: "",
         comments: "",
@@ -188,7 +258,7 @@ export default function PackagingDetail() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   };
 
@@ -283,7 +353,8 @@ export default function PackagingDetail() {
       </div>
 
       {/* Packaging Information */}
-      <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-3">
+        {/* Column 1: Basic Information */}
         <div className="space-y-4">
           <div>
             <Label>Packaging Name</Label>
@@ -299,9 +370,24 @@ export default function PackagingDetail() {
               <p className="text-sm text-gray-800 dark:text-white/90">{packaging.description}</p>
             </div>
           )}
+          <div>
+            <Label>Status</Label>
+            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+              packaging.isActive 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+            }`}>
+              {packaging.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
         </div>
         
+        {/* Column 2: Quantity & Stock */}
         <div className="space-y-4">
+          <div>
+            <Label>Quantity</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90">{packaging.quantity || 'N/A'}</p>
+          </div>
           <div>
             <Label>Current Quantity</Label>
             <div className="flex items-center gap-2">
@@ -316,15 +402,29 @@ export default function PackagingDetail() {
             <p className="text-sm text-gray-800 dark:text-white/90">{formatCurrency(packaging.unitCost)}</p>
           </div>
           <div>
-            <Label>Total COG</Label>
-            <p className="text-sm text-gray-800 dark:text-white/90">{formatCurrency(packaging.totalCOG)}</p>
+            <Label>Created</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90">{formatDate(packaging.createdAt)}</p>
           </div>
-          {packaging.linkedProducts && (
-            <div>
-              <Label>Linked Products</Label>
-              <p className="text-sm text-gray-800 dark:text-white/90">{packaging.linkedProducts}</p>
-            </div>
-          )}
+        </div>
+
+        {/* Column 3: Cost Information */}
+        <div className="space-y-4">
+          <div>
+            <Label>Cost</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90">{formatCurrency(packaging.cost || 0)}</p>
+          </div>
+          <div>
+            <Label>Shipping Cost</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90">{formatCurrency(packaging.shipping || 0)}</p>
+          </div>
+          <div>
+            <Label>VAT</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90">{formatCurrency(packaging.vat || 0)}</p>
+          </div>
+          <div>
+            <Label>Total Cost</Label>
+            <p className="text-sm text-gray-800 dark:text-white/90 font-semibold">{formatCurrency(packaging.totalCost || 0)}</p>
+          </div>
         </div>
       </div>
 
@@ -361,15 +461,69 @@ export default function PackagingDetail() {
             </div>
 
             <div>
-              <Label>Total Cost *</Label>
+              <Label>Cost *</Label>
               <Input
                 type="number"
                 name="cost"
                 defaultValue={replenishData.cost}
                 onChange={handleReplenishInputChange}
                 placeholder="0.00"
-                step="0.01"
+                step={0.01}
                 min="0"
+              />
+            </div>
+
+            <div>
+              <Label>Shipping *</Label>
+              <Input
+                type="number"
+                name="shipping"
+                defaultValue={replenishData.shipping}
+                onChange={handleReplenishInputChange}
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+              />
+            </div>
+
+            <div>
+              <Label>VAT *</Label>
+              <Input
+                type="number"
+                name="vat"
+                defaultValue={replenishData.vat}
+                onChange={handleReplenishInputChange}
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+              />
+            </div>
+
+            <div>
+              <Label>Total Cost</Label>
+              <Input
+                type="number"
+                name="totalCost"
+                defaultValue={replenishData.totalCost}
+                onChange={handleReplenishInputChange}
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+                disabled
+              />
+            </div>
+
+            <div>
+              <Label>Unit Cost</Label>
+              <Input
+                type="number"
+                name="unitCost"
+                defaultValue={replenishData.unitCost}
+                onChange={handleReplenishInputChange}
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+                disabled
               />
             </div>
 
@@ -469,8 +623,11 @@ export default function PackagingDetail() {
                 <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th className="text-left py-2 text-gray-600 dark:text-gray-400">Date</th>
                   <th className="text-left py-2 text-gray-600 dark:text-gray-400">Quantity</th>
-                  <th className="text-left py-2 text-gray-600 dark:text-gray-400">Unit Cost</th>
+                  <th className="text-left py-2 text-gray-600 dark:text-gray-400">Cost</th>
+                  <th className="text-left py-2 text-gray-600 dark:text-gray-400">Shipping</th>
+                  <th className="text-left py-2 text-gray-600 dark:text-gray-400">VAT</th>
                   <th className="text-left py-2 text-gray-600 dark:text-gray-400">Total Cost</th>
+                  <th className="text-left py-2 text-gray-600 dark:text-gray-400">Unit Cost</th>
                   <th className="text-left py-2 text-gray-600 dark:text-gray-400">Invoice</th>
                 </tr>
               </thead>
@@ -479,8 +636,11 @@ export default function PackagingDetail() {
                   <tr key={replenishment.id} className="border-b border-gray-100 dark:border-gray-800">
                     <td className="py-2 text-gray-800 dark:text-white/90">{formatDate(replenishment.date)}</td>
                     <td className="py-2 text-gray-600 dark:text-gray-400">{replenishment.quantity}</td>
-                    <td className="py-2 text-gray-600 dark:text-gray-400">{formatCurrency(replenishment.unitCost)}</td>
                     <td className="py-2 text-gray-600 dark:text-gray-400">{formatCurrency(replenishment.cost)}</td>
+                    <td className="py-2 text-gray-600 dark:text-gray-400">{formatCurrency(replenishment.shipping)}</td>
+                    <td className="py-2 text-gray-600 dark:text-gray-400">{formatCurrency(replenishment.vat)}</td>
+                    <td className="py-2 text-gray-600 dark:text-gray-400 font-semibold">{formatCurrency(replenishment.totalCost)}</td>
+                    <td className="py-2 text-gray-600 dark:text-gray-400">{formatCurrency(replenishment.unitCost)}</td>
                     <td className="py-2 text-gray-600 dark:text-gray-400">
                       {replenishment.invoiceLink ? (
                         <a 

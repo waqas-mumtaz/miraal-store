@@ -187,7 +187,7 @@ export default function ProductDetail() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   };
 
@@ -363,7 +363,7 @@ export default function ProductDetail() {
                 defaultValue={replenishData.cost}
                 onChange={handleReplenishInputChange}
                 placeholder="0.00"
-                step="0.01"
+                step={0.01}
                 min="0"
               />
             </div>

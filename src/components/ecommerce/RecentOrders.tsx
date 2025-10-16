@@ -27,7 +27,7 @@ const tableData: Product[] = [
     name: "MacBook Pro 13”",
     variants: "2 Variants",
     category: "Laptop",
-    price: "$2399.00",
+    price: "€2399.00",
     status: "Delivered",
     image: "/images/product/product-01.jpg", // Replace with actual image URL
   },
