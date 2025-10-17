@@ -37,6 +37,18 @@ const Input: FC<InputProps> = ({
 }) => {
   // Determine input styles based on state (disabled, success, error)
   let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
+  
+  // Hide number input spinners for number type inputs
+  if (type === "number") {
+    inputClasses += ` [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]`;
+  }
+
+  // Handle wheel event for number inputs to prevent value changes
+  const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+    if (type === "number") {
+      e.currentTarget.blur();
+    }
+  };
 
   // Add styles for the different states
   if (disabled) {
@@ -59,6 +71,7 @@ const Input: FC<InputProps> = ({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onWheel={handleWheel}
         min={min}
         max={max}
         step={step}

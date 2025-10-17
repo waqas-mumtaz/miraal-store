@@ -1,4 +1,4 @@
-import { EditInvoice } from "@/components/expenses/invoices";
+import { EditInvoice } from "@/components/invoices";
 
 export default function EditInvoicePage() {
   return <EditInvoice />;

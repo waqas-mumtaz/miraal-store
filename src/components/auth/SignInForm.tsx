@@ -134,7 +134,7 @@ export default function SignInForm() {
                   <Input 
                     placeholder="waqasmumtazkhan@gmail.com" 
                     type="email" 
-                    defaultValue={email}
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
@@ -146,7 +146,7 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      defaultValue={password}
+                      value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <span
@@ -176,7 +176,7 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" disabled={isLoading}>
+                  <Button type="submit" className="w-full" size="sm" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign in"}
                   </Button>
                 </div>

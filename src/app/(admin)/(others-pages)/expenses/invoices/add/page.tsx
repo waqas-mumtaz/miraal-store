@@ -1,4 +1,4 @@
-import { AddInvoice } from "@/components/expenses/invoices";
+import { AddInvoice } from "@/components/invoices";
 
 export default function AddInvoicePage() {
   return <AddInvoice />;

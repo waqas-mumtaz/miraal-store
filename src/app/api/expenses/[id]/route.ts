@@ -1,66 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
 
-export async function DELETE(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get the auth token from cookies
-    const token = request.cookies.get('auth-token')?.value
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    // Verify the token
-    const user = await verifyToken(token)
-    
+    // Verify authentication
+    const token = request.cookies.get('auth-token')?.value;
+    const user = await verifyToken(token);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: expenseId } = await params
+    const { id } = await params;
 
-    // Check if expense exists and belongs to the user
+    // Get the expense
     const expense = await prisma.expense.findFirst({
       where: {
-        id: expenseId,
-        userId: user.id
-      }
-    })
+        id,
+        userId: user.id,
+      },
+    });
 
     if (!expense) {
-      return NextResponse.json(
-        { error: 'Expense not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
-    // Delete the expense
-    await prisma.expense.delete({
-      where: {
-        id: expenseId
-      }
-    })
-
-    return NextResponse.json({
-      message: 'Expense deleted successfully'
-    })
-
+    return NextResponse.json(expense);
   } catch (error) {
-    console.error('Expense deletion error:', error)
+    console.error("Error fetching expense:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to fetch expense" },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -69,213 +43,134 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get the auth token from cookies
-    const token = request.cookies.get('auth-token')?.value
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    // Verify the token
-    const user = await verifyToken(token)
-    
+    // Verify authentication
+    const token = request.cookies.get('auth-token')?.value;
+    const user = await verifyToken(token);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: expenseId } = await params
-
-    // Check if expense exists and belongs to the user
-    const existingExpense = await prisma.expense.findFirst({
-      where: {
-        id: expenseId,
-        userId: user.id
-      }
-    })
-
-    if (!existingExpense) {
-      return NextResponse.json(
-        { error: 'Expense not found' },
-        { status: 404 }
-      )
-    }
-
-    const { 
-      title, 
-      quantity, 
-      amount,
-      shippingCost,
+    const { id } = await params;
+    const body = await request.json();
+    const {
+      expense_id,
+      invoice_id,
+      item_name,
+      category,
+      quantity,
+      cost,
+      shipping_cost,
       vat,
-      totalAmount, 
-      perQuantityCost, 
-      buyLink, 
-      invoiceLink,
-      date, 
-      category, 
-      comments 
-    } = await request.json()
+      total_cost,
+      unit_price,
+      date,
+      comment,
+    } = body;
 
     // Validate required fields
-    if (!title || !quantity || !amount || !date || !category) {
+    if (!expense_id || !invoice_id || !item_name || !category || !quantity || !cost || !date) {
       return NextResponse.json(
-        { error: 'Title, quantity, amount, date, and category are required' },
+        { error: "Missing required fields" },
         { status: 400 }
-      )
+      );
     }
 
-    // Validate data types
-    if (isNaN(quantity) || quantity <= 0) {
-      return NextResponse.json(
-        { error: 'Quantity must be a positive number' },
-        { status: 400 }
-      )
+    // Check if expense exists and belongs to user
+    const existingExpense = await prisma.expense.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!existingExpense) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
-    if (isNaN(amount) || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Amount must be a positive number' },
-        { status: 400 }
-      )
+    // Check if expense_id has changed and if new expense_id is already taken
+    if (existingExpense.expense_id !== expense_id) {
+      const duplicateExpense = await prisma.expense.findFirst({
+        where: {
+          expense_id,
+          userId: user.id,
+          id: { not: id }, // Exclude current expense
+        },
+      });
+
+      if (duplicateExpense) {
+        return NextResponse.json(
+          { error: "Expense ID already exists" },
+          { status: 400 }
+        );
+      }
     }
 
     // Update the expense
-    const expense = await prisma.expense.update({
-      where: {
-        id: expenseId
-      },
+    const updatedExpense = await prisma.expense.update({
+      where: { id },
       data: {
-        title: title.trim(),
+        expense_id,
+        invoice_id,
+        item_name,
+        category,
         quantity: parseInt(quantity),
-        amount: parseFloat(amount),
-        shippingCost: parseFloat(shippingCost || 0),
+        cost: parseFloat(cost),
+        shipping_cost: parseFloat(shipping_cost || 0),
         vat: parseFloat(vat || 0),
-        totalAmount: parseFloat(totalAmount),
-        perQuantityCost: parseFloat(perQuantityCost),
-        buyLink: buyLink?.trim() || null,
-        invoiceLink: invoiceLink?.trim() || null,
+        total_cost: parseFloat(total_cost),
+        unit_price: parseFloat(unit_price),
         date: new Date(date),
-        category: category.trim(),
-        comments: comments?.trim() || null,
-        updatedAt: new Date()
+        comment: comment || null,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          }
-        }
-      }
-    })
+    });
 
-    return NextResponse.json({
-      message: 'Expense updated successfully',
-      expense: {
-        id: expense.id,
-        title: expense.title,
-        quantity: expense.quantity,
-        totalAmount: expense.totalAmount,
-        perQuantityCost: expense.perQuantityCost,
-        buyLink: expense.buyLink,
-        invoiceLink: expense.invoiceLink,
-        date: expense.date,
-        category: expense.category,
-        comments: expense.comments,
-        createdAt: expense.createdAt,
-        updatedAt: expense.updatedAt,
-        user: expense.user
-      }
-    })
-
+    return NextResponse.json(updatedExpense);
   } catch (error) {
-    console.error('Expense update error:', error)
+    console.error("Error updating expense:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to update expense" },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function GET(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get the auth token from cookies
-    const token = request.cookies.get('auth-token')?.value
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    // Verify the token
-    const user = await verifyToken(token)
-    
+    // Verify authentication
+    const token = request.cookies.get('auth-token')?.value;
+    const user = await verifyToken(token);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: expenseId } = await params
+    const { id } = await params;
 
-    // Get the expense
-    const expense = await prisma.expense.findFirst({
+    // Check if expense exists and belongs to user
+    const existingExpense = await prisma.expense.findFirst({
       where: {
-        id: expenseId,
-        userId: user.id
+        id,
+        userId: user.id,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          }
-        }
-      }
-    })
+    });
 
-    if (!expense) {
-      return NextResponse.json(
-        { error: 'Expense not found' },
-        { status: 404 }
-      )
+    if (!existingExpense) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      expense: {
-        id: expense.id,
-        title: expense.title,
-        quantity: expense.quantity,
-        totalAmount: expense.totalAmount,
-        perQuantityCost: expense.perQuantityCost,
-        buyLink: expense.buyLink,
-        invoiceLink: expense.invoiceLink,
-        date: expense.date,
-        category: expense.category,
-        comments: expense.comments,
-        createdAt: expense.createdAt,
-        user: expense.user
-      }
-    })
+    // Delete the expense
+    await prisma.expense.delete({
+      where: { id },
+    });
 
+    return NextResponse.json({ message: "Expense deleted successfully" });
   } catch (error) {
-    console.error('Expense fetch error:', error)
+    console.error("Error deleting expense:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to delete expense" },
       { status: 500 }
-    )
+    );
   }
 }

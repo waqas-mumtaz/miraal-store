@@ -27,12 +27,19 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Ecommerce", path: "/", pro: false }],
   },
   {
+    name: "Invoices",
+    icon: <DollarLineIcon />,
+    subItems: [
+      { name: "Invoice List", path: "/expenses/invoices", pro: false },
+      { name: "Add Invoice", path: "/expenses/invoices/add", pro: false },
+    ],
+  },
+  {
     name: "Expenses",
     icon: <DollarLineIcon />,
     subItems: [
       { name: "Expense List", path: "/expenses", pro: false },
       { name: "Add Expense", path: "/expenses/add", pro: false },
-      { name: "Invoices", path: "/expenses/invoices", pro: false },
     ],
   },
   {
