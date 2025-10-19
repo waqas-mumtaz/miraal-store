@@ -38,9 +38,10 @@ export default function AddPlan() {
   });
 
   const calculateProfit = (data: PlanFormData) => {
-    const ebayCommissionAmount = (data.sellPrice * data.ebayCommission) / 100;
     const totalRevenue = data.sellPrice + data.shippingCharges;
-    const totalCosts = ebayCommissionAmount + data.vat + data.shippingCost + data.unitPrice;
+    const ebayCommissionAmount = (totalRevenue * data.ebayCommission) / 100;
+    const vatAmount = (totalRevenue * data.vat) / 100;
+    const totalCosts = ebayCommissionAmount + vatAmount + data.shippingCost + data.unitPrice;
     return totalRevenue - totalCosts;
   };
 
@@ -194,16 +195,17 @@ export default function AddPlan() {
               {/* VAT */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  VAT (€)
+                  VAT (%)
                 </label>
                 <Input
                   type="number"
                   name="vat"
                   value={formData.vat}
                   onChange={handleInputChange}
-                  placeholder="0.00"
+                  placeholder="0"
                   step={0.01}
                   min="0"
+                  max="100"
                 />
               </div>
 
@@ -292,7 +294,7 @@ export default function AddPlan() {
                   €{profit.toFixed(2)}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Formula: (Sell Price + Shipping Charges) - (eBay Commission + VAT + Shipping Cost + Source Price)
+                  Formula: (Sell Price + Shipping Charges) - (eBay Commission% + VAT% + Shipping Cost + Source Price)
                 </p>
               </div>
             </div>
