@@ -40,18 +40,22 @@ export default function AddPlan() {
   });
 
   const calculateProfit = (data: PlanFormData) => {
-    const sellPrice = typeof data.sellPrice === 'string' ? parseFloat(data.sellPrice) || 0 : data.sellPrice;
-    const shippingCharges = typeof data.shippingCharges === 'string' ? parseFloat(data.shippingCharges) || 0 : data.shippingCharges;
-    const vat = typeof data.vat === 'string' ? parseFloat(data.vat) || 0 : data.vat;
-    const advertisingPercentage = typeof data.advertisingPercentage === 'string' ? parseFloat(data.advertisingPercentage) || 0 : data.advertisingPercentage;
-    const shippingCost = typeof data.shippingCost === 'string' ? parseFloat(data.shippingCost) || 0 : data.shippingCost;
-    const unitPrice = typeof data.unitPrice === 'string' ? parseFloat(data.unitPrice) || 0 : data.unitPrice;
-    
-    const totalRevenue = sellPrice + shippingCharges;
-    const netRevenue = totalRevenue / (1 + vat / 100);
-    const ebayCommissionAmount = (totalRevenue * data.ebayCommission) / 100;
-    const advertisingAmount = (sellPrice * advertisingPercentage) / 100;
+    const toNumber = (value: string | number) => (typeof value === 'string' ? parseFloat(value) || 0 : value || 0);
+  
+    const sellPrice = toNumber(data.sellPrice);
+    const shippingCharges = toNumber(data.shippingCharges);
+    const vat = toNumber(data.vat);
+    const advertisingPercentage = toNumber(data.advertisingPercentage);
+    const shippingCost = toNumber(data.shippingCost);
+    const unitPrice = toNumber(data.unitPrice);
+    const ebayCommission = toNumber(data.ebayCommission);
+  
+    const totalRevenue = sellPrice + shippingCharges; // gross amount buyer pays
+    const netRevenue = totalRevenue / (1 + vat / 100); // remove VAT
+    const ebayCommissionAmount = (totalRevenue * ebayCommission) / 100;
+    const advertisingAmount = (totalRevenue * advertisingPercentage) / 100; // optional: change to sellPrice if needed
     const totalCosts = ebayCommissionAmount + advertisingAmount + shippingCost + unitPrice;
+  
     return netRevenue - totalCosts;
   };
 
@@ -116,7 +120,6 @@ export default function AddPlan() {
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Add eBay Plan</h1>
           <p className="text-gray-600 mt-2">Create a new product plan for eBay selling</p>
@@ -223,6 +226,14 @@ export default function AddPlan() {
                   min="0"
                   max="100"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  VAT Amount: €{(() => {
+                    const sellPrice = parseFloat(formData.sellPrice.toString()) || 0;
+                    const shippingCharges = parseFloat(formData.shippingCharges.toString()) || 0;
+                    const vat = parseFloat(formData.vat.toString()) || 0;
+                    return ((sellPrice + shippingCharges) * vat / 100).toFixed(2);
+                  })()}
+                </p>
               </div>
 
               {/* eBay Commission */}
@@ -240,6 +251,14 @@ export default function AddPlan() {
                   min="0"
                   max="100"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  eBay Commission Amount: €{(() => {
+                    const sellPrice = parseFloat(formData.sellPrice.toString()) || 0;
+                    const shippingCharges = parseFloat(formData.shippingCharges.toString()) || 0;
+                    const ebayCommission = parseFloat(formData.ebayCommission.toString()) || 0;
+                    return ((sellPrice + shippingCharges) * ebayCommission / 100).toFixed(2);
+                  })()}
+                </p>
               </div>
 
               {/* Advertising Percentage */}
@@ -257,6 +276,14 @@ export default function AddPlan() {
                   min="0"
                   max="100"
                 />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Advertising Amount: €{(() => {
+                      const sellPrice = parseFloat(formData.sellPrice.toString()) || 0;
+                      const shippingCharges = parseFloat(formData.shippingCharges.toString()) || 0;
+                      const advertisingPercentage = parseFloat(formData.advertisingPercentage.toString()) || 0;
+                      return ((sellPrice + shippingCharges) * advertisingPercentage / 100).toFixed(2);
+                    })()}
+                  </p>
               </div>
 
               {/* Shipping Charges (from buyer) */}
