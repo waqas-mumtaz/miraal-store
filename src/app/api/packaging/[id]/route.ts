@@ -27,11 +27,6 @@ export async function GET(
         userId: user.id,
       },
       include: {
-        linkedExpenses: {
-          include: {
-            expense: true,
-          },
-        },
         replenishments: {
           orderBy: {
             createdAt: 'desc',
@@ -102,12 +97,12 @@ export async function PUT(
         name,
         description: description || null,
         type,
-        quantity: quantity ? parseInt(quantity) : null,
-        cost: cost ? parseFloat(cost) : null,
+        quantity: quantity ? parseInt(quantity) : undefined,
+        cost: cost ? parseFloat(cost) : undefined,
         unitCost: parseFloat(unitCost),
-        shipping: shipping ? parseFloat(shipping) : null,
-        vat: vat ? parseFloat(vat) : null,
-        totalCost: totalCost ? parseFloat(totalCost) : null,
+        shipping: shipping ? parseFloat(shipping) : undefined,
+        vat: vat ? parseFloat(vat) : undefined,
+        totalCost: totalCost ? parseFloat(totalCost) : undefined,
         updatedAt: new Date(),
       },
     });

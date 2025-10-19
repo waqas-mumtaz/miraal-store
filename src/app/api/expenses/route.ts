@@ -6,6 +6,9 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const user = await verifyToken(token);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,6 +53,9 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const user = await verifyToken(token);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

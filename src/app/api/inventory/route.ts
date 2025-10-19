@@ -67,18 +67,6 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          linkedExpenses: {
-            include: {
-              expense: {
-                select: {
-                  id: true,
-                  title: true,
-                  date: true,
-                  totalAmount: true
-                }
-              }
-            }
-          },
           replenishments: {
             orderBy: { createdAt: 'desc' },
             take: 1
@@ -91,18 +79,6 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          linkedExpenses: {
-            include: {
-              expense: {
-                select: {
-                  id: true,
-                  title: true,
-                  date: true,
-                  totalAmount: true
-                }
-              }
-            }
-          },
           replenishments: {
             orderBy: { createdAt: 'desc' },
             take: 1
@@ -127,11 +103,6 @@ export async function GET(request: NextRequest) {
         isActive: product.isActive,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
-        linkedExpenses: product.linkedExpenses.map(link => ({
-          id: link.id,
-          allocatedCost: link.allocatedCost,
-          expense: link.expense
-        })),
         lastReplenishment: product.replenishments[0] || null
       })),
       ...packagingItems.map(item => ({
@@ -142,15 +113,10 @@ export async function GET(request: NextRequest) {
         sku: item.type,
         currentQuantity: item.currentQuantity,
         unitCost: item.unitCost,
-        totalCOG: item.totalCOG,
+        totalCOG: item.totalCost,
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
-        linkedExpenses: item.linkedExpenses.map(link => ({
-          id: link.id,
-          allocatedCost: link.allocatedCost,
-          expense: link.expense
-        })),
         lastReplenishment: item.replenishments[0] || null
       }))
     ]

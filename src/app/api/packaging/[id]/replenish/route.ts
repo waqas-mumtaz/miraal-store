@@ -21,7 +21,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { quantity, cost, shipping, vat, totalCost, unitCost, date, invoiceLink, comments, expenseId } = body;
+    const { quantity, cost, shipping, vat, totalCost, unitCost, date, invoiceLink, comments } = body;
 
     // Validate required fields
     if (!quantity || !cost || !shipping || !vat || !date) {
@@ -107,7 +107,6 @@ export async function POST(
         date: new Date(date),
         invoiceLink: invoiceLink || null,
         comments: comments || null,
-        expenseId: expenseId || null,
         packagingId: packagingId,
         userId: user.id,
       },

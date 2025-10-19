@@ -53,18 +53,6 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          linkedExpenses: {
-            include: {
-              expense: {
-                select: {
-                  id: true,
-                  title: true,
-                  date: true,
-                  totalAmount: true
-                }
-              }
-            }
-          },
           replenishments: {
             orderBy: { createdAt: 'desc' },
             take: 1 // Get latest replenishment
@@ -90,11 +78,6 @@ export async function GET(request: NextRequest) {
         isActive: item.isActive,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
-        linkedExpenses: item.linkedExpenses?.map(link => ({
-          id: link.id,
-          allocatedCost: link.allocatedCost,
-          expense: link.expense
-        })) || [],
         lastReplenishment: item.replenishments?.[0] || null
       })),
       pagination: {
@@ -215,24 +198,6 @@ export async function POST(request: NextRequest) {
         unitCost: parseFloat(unitCost),
         currentQuantity: parseInt(quantity), // Set initial quantity
         userId: user.id,
-      },
-      include: {
-        linkedExpenses: {
-          include: {
-            expense: {
-              select: {
-                id: true,
-                title: true,
-                date: true,
-                totalAmount: true
-              }
-            }
-          }
-        },
-        replenishments: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
       }
     })
 
@@ -245,16 +210,11 @@ export async function POST(request: NextRequest) {
         type: packaging.type,
         currentQuantity: packaging.currentQuantity,
         unitCost: packaging.unitCost,
-        totalCOG: packaging.totalCOG,
+        totalCOG: packaging.totalCost,
         linkedProducts: packaging.linkedProducts ? JSON.parse(packaging.linkedProducts) : [],
         isActive: packaging.isActive,
         createdAt: packaging.createdAt,
         updatedAt: packaging.updatedAt,
-        linkedExpenses: packaging.linkedExpenses.map(link => ({
-          id: link.id,
-          allocatedCost: link.allocatedCost,
-          expense: link.expense
-        })),
         lastReplenishment: packaging.replenishments[0] || null
       }
     })
