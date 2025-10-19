@@ -13,6 +13,7 @@ interface PlanFormData {
   ebayLink: string;
   vat: string | number;
   ebayCommission: number;
+  advertisingPercentage: string | number;
   shippingCharges: string | number;
   shippingCost: string | number;
   status: string;
@@ -32,6 +33,7 @@ export default function AddPlan() {
     ebayLink: "",
     vat: "",
     ebayCommission: 15,
+    advertisingPercentage: "",
     shippingCharges: "",
     shippingCost: "",
     status: "planned",
@@ -41,13 +43,15 @@ export default function AddPlan() {
     const sellPrice = typeof data.sellPrice === 'string' ? parseFloat(data.sellPrice) || 0 : data.sellPrice;
     const shippingCharges = typeof data.shippingCharges === 'string' ? parseFloat(data.shippingCharges) || 0 : data.shippingCharges;
     const vat = typeof data.vat === 'string' ? parseFloat(data.vat) || 0 : data.vat;
+    const advertisingPercentage = typeof data.advertisingPercentage === 'string' ? parseFloat(data.advertisingPercentage) || 0 : data.advertisingPercentage;
     const shippingCost = typeof data.shippingCost === 'string' ? parseFloat(data.shippingCost) || 0 : data.shippingCost;
     const unitPrice = typeof data.unitPrice === 'string' ? parseFloat(data.unitPrice) || 0 : data.unitPrice;
     
     const totalRevenue = sellPrice + shippingCharges;
     const netRevenue = totalRevenue / (1 + vat / 100);
     const ebayCommissionAmount = (totalRevenue * data.ebayCommission) / 100;
-    const totalCosts = ebayCommissionAmount + shippingCost + unitPrice;
+    const advertisingAmount = (sellPrice * advertisingPercentage) / 100;
+    const totalCosts = ebayCommissionAmount + advertisingAmount + shippingCost + unitPrice;
     return netRevenue - totalCosts;
   };
 
@@ -65,7 +69,7 @@ export default function AddPlan() {
     setFormData(updatedData);
     
     // Recalculate profit when relevant fields change
-    if (["sellPrice", "shippingCharges", "ebayCommission", "vat", "shippingCost", "unitPrice"].includes(name)) {
+    if (["sellPrice", "shippingCharges", "ebayCommission", "vat", "advertisingPercentage", "shippingCost", "unitPrice"].includes(name)) {
       const newProfit = calculateProfit(updatedData);
       setProfit(newProfit);
     }
@@ -88,6 +92,7 @@ export default function AddPlan() {
           unitPrice: typeof formData.unitPrice === 'string' ? parseFloat(formData.unitPrice) || 0 : formData.unitPrice,
           sellPrice: typeof formData.sellPrice === 'string' ? parseFloat(formData.sellPrice) || 0 : formData.sellPrice,
           vat: typeof formData.vat === 'string' ? parseFloat(formData.vat) || 0 : formData.vat,
+          advertisingPercentage: typeof formData.advertisingPercentage === 'string' ? parseFloat(formData.advertisingPercentage) || 0 : formData.advertisingPercentage,
           shippingCharges: typeof formData.shippingCharges === 'string' ? parseFloat(formData.shippingCharges) || 0 : formData.shippingCharges,
           shippingCost: typeof formData.shippingCost === 'string' ? parseFloat(formData.shippingCost) || 0 : formData.shippingCost,
           profit: profit,
@@ -231,6 +236,23 @@ export default function AddPlan() {
                   value={formData.ebayCommission}
                   onChange={handleInputChange}
                   placeholder="15"
+                  step={0.01}
+                  min="0"
+                  max="100"
+                />
+              </div>
+
+              {/* Advertising Percentage */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Advertising Percentage (%)
+                </label>
+                <Input
+                  type="number"
+                  name="advertisingPercentage"
+                  value={formData.advertisingPercentage}
+                  onChange={handleInputChange}
+                  placeholder="0"
                   step={0.01}
                   min="0"
                   max="100"

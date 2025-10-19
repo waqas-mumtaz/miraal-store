@@ -94,6 +94,7 @@ model EbayPlan {
   ebayLink        String?
   vat             Decimal  @db.Decimal(10, 2) @default(0)
   ebayCommission  Decimal  @db.Decimal(5, 2) @default(15)
+  advertisingPercentage Decimal @db.Decimal(5, 2) @default(0)
   shippingCharges Decimal  @db.Decimal(10, 2) @default(0)
   shippingCost    Decimal  @db.Decimal(10, 2) @default(0)
   status          String   @default("planned")
