@@ -1,13 +1,14 @@
 import Input from "@/components/form/input/InputField";
-import { PlanFormData, ProfitBreakdown } from "../types";
+import { PlanFormData, ProfitBreakdown, Marketplace } from "../types";
 
 interface CostsFormProps {
   formData: PlanFormData;
   profitBreakdown: ProfitBreakdown;
+  marketplace: Marketplace;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }
 
-export const CostsForm = ({ formData, profitBreakdown, onChange }: CostsFormProps) => {
+export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: CostsFormProps) => {
   const { netRevenue, ebayCommissionAmount, advertisingAmount } = profitBreakdown;
 
   return (
@@ -30,37 +31,58 @@ export const CostsForm = ({ formData, profitBreakdown, onChange }: CostsFormProp
           <p className="text-xs text-gray-500 mt-1">Net Revenue: €{netRevenue.toFixed(2)}</p>
         </div>
 
-        {/* eBay Commission */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">eBay Commission (%)</label>
-          <Input 
-            type="number" 
-            name="ebayCommission" 
-            value={formData.ebayCommission} 
-            onChange={onChange} 
-            placeholder="15" 
-            step={0.01} 
-            min="0" 
-            max="100" 
-          />
-          <p className="text-xs text-gray-500 mt-1">€{ebayCommissionAmount.toFixed(2)}</p>
-        </div>
+        {/* eBay Commission - only show for eBay */}
+        {marketplace === "ebay" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">eBay Commission (%)</label>
+            <Input 
+              type="number" 
+              name="ebayCommission" 
+              value={formData.ebayCommission} 
+              onChange={onChange} 
+              placeholder="15" 
+              step={0.01} 
+              min="0" 
+              max="100" 
+            />
+            <p className="text-xs text-gray-500 mt-1">€{ebayCommissionAmount.toFixed(2)}</p>
+          </div>
+        )}
 
-        {/* Advertising */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Advertising (%)</label>
-          <Input 
-            type="number" 
-            name="advertisingPercentage" 
-            value={formData.advertisingPercentage} 
-            onChange={onChange} 
-            placeholder="0" 
-            step={0.01} 
-            min="0" 
-            max="100" 
-          />
-          <p className="text-xs text-gray-500 mt-1">€{advertisingAmount.toFixed(2)} (VAT included)</p>
-        </div>
+        {/* Advertising - only show for eBay */}
+        {marketplace === "ebay" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Advertising (%)</label>
+            <Input 
+              type="number" 
+              name="advertisingPercentage" 
+              value={formData.advertisingPercentage} 
+              onChange={onChange} 
+              placeholder="0" 
+              step={0.01} 
+              min="0" 
+              max="100" 
+            />
+            <p className="text-xs text-gray-500 mt-1">€{advertisingAmount.toFixed(2)} (VAT included)</p>
+          </div>
+        )}
+
+        {/* Amazon Fulfillment - only show for Amazon */}
+        {marketplace === "amazon" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Cost (€)</label>
+            <Input 
+              type="number" 
+              name="fulfillmentCost" 
+              value="0" 
+              onChange={onChange} 
+              placeholder="0.00" 
+              step={0.01} 
+              min="0" 
+            />
+            <p className="text-xs text-gray-500 mt-1">Amazon fulfillment and storage fees</p>
+          </div>
+        )}
 
         {/* Shipping Charges */}
         <div>

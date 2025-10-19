@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePlanForm, useProfitCalculation } from "./hooks";
-import { ProductInfoForm, CostsForm, StatusProfitForm, ErrorDisplay } from "./components";
+import { ProductInfoForm, CostsForm, StatusProfitForm, ErrorDisplay, MarketplaceSelector } from "./components";
 import { NUMERIC_FIELDS } from "./types";
 
 export default function AddPlan() {
@@ -27,6 +27,12 @@ export default function AddPlan() {
     if (isNumericField(e.target.name)) {
       updateProfit({ ...formData, [e.target.name]: e.target.value }, marketplace);
     }
+  };
+
+  const handleMarketplaceFormChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    handleMarketplaceChange(e);
+    // Recalculate profit when marketplace changes
+    updateProfit(formData, e.target.value as any);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,10 +68,15 @@ export default function AddPlan() {
       <p className="text-gray-600 mb-6">Create a new product plan for your marketplace</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <MarketplaceSelector 
+          marketplace={marketplace} 
+          onChange={handleMarketplaceFormChange} 
+        />
         <ProductInfoForm formData={formData} onChange={handleFormChange} />
         <CostsForm 
           formData={formData} 
           profitBreakdown={profitBreakdown} 
+          marketplace={marketplace}
           onChange={handleFormChange} 
         />
         <StatusProfitForm
