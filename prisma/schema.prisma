@@ -31,6 +31,7 @@ model User {
   expenses Expense[]
   productReplenishments ProductReplenishment[]
   packagingReplenishments PackagingReplenishment[]
+  ebayPlans EbayPlan[]
 
   @@map("users")
 }
@@ -181,6 +182,30 @@ model Expense {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("expenses")
+}
+
+// eBay Plan model for tracking eBay selling plans
+model EbayPlan {
+  id              String   @id @default(cuid())
+  productName     String
+  unitPrice       Decimal  @db.Decimal(10, 2)
+  sellPrice       Decimal  @db.Decimal(10, 2)
+  sourceLink      String
+  ebayLink        String?
+  vat             Decimal  @db.Decimal(10, 2) @default(0)
+  ebayCommission  Decimal  @db.Decimal(5, 2) @default(15)
+  shippingCharges Decimal  @db.Decimal(10, 2) @default(0)
+  shippingCost    Decimal  @db.Decimal(10, 2) @default(0)
+  status          String   @default("planned")
+  profit          Decimal  @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ebay_plans")
 }
 
 
