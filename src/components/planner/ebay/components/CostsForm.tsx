@@ -9,7 +9,7 @@ interface CostsFormProps {
 }
 
 export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: CostsFormProps) => {
-  const { netRevenue, ebayCommissionAmount, advertisingAmount } = profitBreakdown;
+  const { netRevenue, ebayCommissionAmount, advertisingAmount, marketplaceFee } = profitBreakdown;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -74,7 +74,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             <Input 
               type="number" 
               name="fulfillmentCost" 
-              value="0" 
+              value={formData.fulfillmentCost || ""} 
               onChange={onChange} 
               placeholder="0.00" 
               step={0.01} 
@@ -83,6 +83,18 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             <p className="text-xs text-gray-500 mt-1">Amazon fulfillment and storage fees</p>
           </div>
         )}
+
+        {/* Amazon Marketplace Fee Display - only show for Amazon */}
+        {marketplace === "amazon" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Total Amazon Fees</label>
+            <div className="h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm bg-gray-50">
+              €{marketplaceFee.toFixed(2)}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">15% referral fee + fulfillment cost</p>
+          </div>
+        )}
+
 
         {/* Shipping Charges */}
         <div>
