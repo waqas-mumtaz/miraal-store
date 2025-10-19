@@ -10,6 +10,7 @@ import {
   DollarLineIcon,
   GridIcon,
   HorizontaLDots,
+  ShootingStarIcon,
   UserCircleIcon,
 } from "../icons/index";
 
@@ -48,15 +49,6 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "eBay Plans", path: "/planner/ebay", pro: false },
       { name: "Add eBay Plan", path: "/planner/ebay/add", pro: false },
-    ],
-  },
-  {
-    name: "Inventory",
-    icon: <BoxCubeIcon />,
-    subItems: [
-      { name: "Inventory Management", path: "/inventory", pro: false },
-      { name: "Products", path: "/inventory/products", pro: false },
-      { name: "Packaging", path: "/inventory/packaging", pro: false },
     ],
   },
 ];

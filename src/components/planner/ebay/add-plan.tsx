@@ -122,7 +122,6 @@ export default function AddPlan() {
                   value={formData.productName}
                   onChange={handleInputChange}
                   placeholder="Enter product name"
-                  required
                 />
               </div>
 
@@ -137,9 +136,8 @@ export default function AddPlan() {
                   value={formData.unitPrice}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  step="0.01"
+                  step={0.01}
                   min="0"
-                  required
                 />
               </div>
 
@@ -154,9 +152,8 @@ export default function AddPlan() {
                   value={formData.sellPrice}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  step="0.01"
+                  step={0.01}
                   min="0"
-                  required
                 />
               </div>
 
@@ -171,7 +168,6 @@ export default function AddPlan() {
                   value={formData.sourceLink}
                   onChange={handleInputChange}
                   placeholder="https://example.com/product"
-                  required
                 />
               </div>
 
@@ -206,7 +202,7 @@ export default function AddPlan() {
                   value={formData.vat}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>
@@ -222,7 +218,7 @@ export default function AddPlan() {
                   value={formData.ebayCommission}
                   onChange={handleInputChange}
                   placeholder="15"
-                  step="0.01"
+                  step={0.01}
                   min="0"
                   max="100"
                 />
@@ -239,7 +235,7 @@ export default function AddPlan() {
                   value={formData.shippingCharges}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>
@@ -255,7 +251,7 @@ export default function AddPlan() {
                   value={formData.shippingCost}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>
@@ -276,7 +272,6 @@ export default function AddPlan() {
                   value={formData.status}
                   onChange={handleInputChange}
                   className="h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 focus:border-brand-300 dark:bg-gray-900 dark:text-white/90 dark:border-gray-700 dark:focus:border-brand-800"
-                  required
                 >
                   <option value="planned">Planned</option>
                   <option value="archived">Archived</option>

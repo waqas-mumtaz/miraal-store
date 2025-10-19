@@ -211,10 +211,10 @@ export default function ExpenseList() {
                       {expense.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatCurrency(expense.total_cost)}
+                      {formatCurrency(Number(expense.total_cost))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(expense.unit_price)}
+                      {formatCurrency(Number(expense.unit_price))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(expense.date)}
