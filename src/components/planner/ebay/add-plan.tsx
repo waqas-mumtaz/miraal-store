@@ -7,14 +7,14 @@ import Button from "@/components/ui/button/Button";
 
 interface PlanFormData {
   productName: string;
-  unitPrice: number;
-  sellPrice: number;
+  unitPrice: string | number;
+  sellPrice: string | number;
   sourceLink: string;
   ebayLink: string;
-  vat: number;
+  vat: string | number;
   ebayCommission: number;
-  shippingCharges: number;
-  shippingCost: number;
+  shippingCharges: string | number;
+  shippingCost: string | number;
   status: string;
 }
 
@@ -26,30 +26,36 @@ export default function AddPlan() {
 
   const [formData, setFormData] = useState<PlanFormData>({
     productName: "",
-    unitPrice: 0,
-    sellPrice: 0,
+    unitPrice: "",
+    sellPrice: "",
     sourceLink: "",
     ebayLink: "",
-    vat: 0,
+    vat: "",
     ebayCommission: 15,
-    shippingCharges: 0,
-    shippingCost: 0,
+    shippingCharges: "",
+    shippingCost: "",
     status: "planned",
   });
 
   const calculateProfit = (data: PlanFormData) => {
-    const totalRevenue = data.sellPrice + data.shippingCharges;
+    const sellPrice = typeof data.sellPrice === 'string' ? parseFloat(data.sellPrice) || 0 : data.sellPrice;
+    const shippingCharges = typeof data.shippingCharges === 'string' ? parseFloat(data.shippingCharges) || 0 : data.shippingCharges;
+    const vat = typeof data.vat === 'string' ? parseFloat(data.vat) || 0 : data.vat;
+    const shippingCost = typeof data.shippingCost === 'string' ? parseFloat(data.shippingCost) || 0 : data.shippingCost;
+    const unitPrice = typeof data.unitPrice === 'string' ? parseFloat(data.unitPrice) || 0 : data.unitPrice;
+    
+    const totalRevenue = sellPrice + shippingCharges;
+    const netRevenue = totalRevenue / (1 + vat / 100);
     const ebayCommissionAmount = (totalRevenue * data.ebayCommission) / 100;
-    const vatAmount = (totalRevenue * data.vat) / 100;
-    const totalCosts = ebayCommissionAmount + vatAmount + data.shippingCost + data.unitPrice;
-    return totalRevenue - totalCosts;
+    const totalCosts = ebayCommissionAmount + shippingCost + unitPrice;
+    return netRevenue - totalCosts;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const newValue = name === "productName" || name === "sourceLink" || name === "ebayLink" || name === "status" 
       ? value 
-      : parseFloat(value) || 0;
+      : value === "" ? "" : parseFloat(value) || 0;
 
     const updatedData = {
       ...formData,
@@ -79,6 +85,11 @@ export default function AddPlan() {
         credentials: 'include',
         body: JSON.stringify({
           ...formData,
+          unitPrice: typeof formData.unitPrice === 'string' ? parseFloat(formData.unitPrice) || 0 : formData.unitPrice,
+          sellPrice: typeof formData.sellPrice === 'string' ? parseFloat(formData.sellPrice) || 0 : formData.sellPrice,
+          vat: typeof formData.vat === 'string' ? parseFloat(formData.vat) || 0 : formData.vat,
+          shippingCharges: typeof formData.shippingCharges === 'string' ? parseFloat(formData.shippingCharges) || 0 : formData.shippingCharges,
+          shippingCost: typeof formData.shippingCost === 'string' ? parseFloat(formData.shippingCost) || 0 : formData.shippingCost,
           profit: profit,
         }),
       });
