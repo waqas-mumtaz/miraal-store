@@ -8,6 +8,7 @@ export interface PlanFormData {
   ebayCommission: number;
   advertisingPercentage: string | number;
   fulfillmentCost?: string | number;
+  feePerItem?: string | number;
   shippingCharges: string | number;
   shippingCost: string | number;
   status: string;
@@ -32,6 +33,7 @@ export const NUMERIC_FIELDS = [
   "vat",
   "advertisingPercentage",
   "fulfillmentCost",
+  "feePerItem",
   "shippingCost",
   "unitPrice",
 ] as const;

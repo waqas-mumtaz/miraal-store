@@ -13,6 +13,7 @@ export const usePlanForm = () => {
     ebayCommission: 15,
     advertisingPercentage: "",
     fulfillmentCost: "",
+    feePerItem: "",
     shippingCharges: "",
     shippingCost: "",
     status: "planned",

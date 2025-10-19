@@ -84,14 +84,20 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
           </div>
         )}
 
-        {/* Amazon Marketplace Fee Display - only show for Amazon */}
+        {/* Amazon Fee per Item - only show for Amazon */}
         {marketplace === "amazon" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Total Amazon Fees</label>
-            <div className="h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm bg-gray-50">
-              €{marketplaceFee.toFixed(2)}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">15% referral fee + fulfillment cost</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Fee per Item Sold (€)</label>
+            <Input 
+              type="number" 
+              name="feePerItem" 
+              value={formData.feePerItem || ""} 
+              onChange={onChange} 
+              placeholder="0.00" 
+              step={0.01} 
+              min="0" 
+            />
+            <p className="text-xs text-gray-500 mt-1">Amazon fees per individual item sold</p>
           </div>
         )}
 

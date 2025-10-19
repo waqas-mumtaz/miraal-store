@@ -36,9 +36,8 @@ export const useProfitCalculation = () => {
       advertisingAmount = (sellPrice * advertisingPercentage / 100) * (1 + vat / 100);
       marketplaceFee = ebayCommissionAmount + advertisingAmount;
     } else if (marketplace === "amazon") {
-      const fulfillmentCost = toNumber(data.fulfillmentCost || 0);
-      const fixedAmazonFeePercentage = 15; // fixed Amazon fee %
-      marketplaceFee = (totalRevenue * fixedAmazonFeePercentage) / 100 + fulfillmentCost;
+      const feePerItem = toNumber(data.feePerItem || 0);
+      marketplaceFee = feePerItem;
     }
 
     const totalCosts = marketplaceFee + shippingCost + unitPrice;
