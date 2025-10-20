@@ -1,11 +1,12 @@
 import ViewPlan from "@/components/planner/view-plan";
 
 interface ViewPlanPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ViewPlanPage({ params }: ViewPlanPageProps) {
-  return <ViewPlan planId={params.id} />;
+export default async function ViewPlanPage({ params }: ViewPlanPageProps) {
+  const { id } = await params;
+  return <ViewPlan planId={id} />;
 }

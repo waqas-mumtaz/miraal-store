@@ -127,11 +127,11 @@ export default function ViewPlan({ planId }: ViewPlanProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Unit Price</label>
-              <p className="text-gray-900">€{plan.unitPrice.toFixed(2)}</p>
+              <p className="text-gray-900">€{Number(plan.unitPrice).toFixed(2)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Sell Price</label>
-              <p className="text-gray-900">€{plan.sellPrice.toFixed(2)}</p>
+              <p className="text-gray-900">€{Number(plan.sellPrice).toFixed(2)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Source Link</label>
@@ -166,26 +166,26 @@ export default function ViewPlan({ planId }: ViewPlanProps) {
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700">Shipping Charges</label>
-              <p className="text-gray-900">€{plan.shippingCharges.toFixed(2)}</p>
+              <p className="text-gray-900">€{Number(plan.shippingCharges).toFixed(2)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Shipping Cost</label>
-              <p className="text-gray-900">€{plan.shippingCost.toFixed(2)}</p>
+              <p className="text-gray-900">€{Number(plan.shippingCost).toFixed(2)}</p>
             </div>
             
             {isEbay && plan.ebayDetails && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">VAT (%)</label>
-                  <p className="text-gray-900">{plan.ebayDetails.vat.toFixed(2)}%</p>
+                  <p className="text-gray-900">{Number(plan.ebayDetails.vat).toFixed(2)}%</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">eBay Commission (%)</label>
-                  <p className="text-gray-900">{plan.ebayDetails.ebayCommission.toFixed(2)}%</p>
+                  <p className="text-gray-900">{Number(plan.ebayDetails.ebayCommission).toFixed(2)}%</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Advertising (%)</label>
-                  <p className="text-gray-900">{plan.ebayDetails.advertisingPercentage.toFixed(2)}%</p>
+                  <p className="text-gray-900">{Number(plan.ebayDetails.advertisingPercentage).toFixed(2)}%</p>
                 </div>
               </>
             )}
@@ -194,15 +194,15 @@ export default function ViewPlan({ planId }: ViewPlanProps) {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Fulfillment Cost</label>
-                  <p className="text-gray-900">€{plan.amazonDetails.fulfillmentCost.toFixed(2)}</p>
+                  <p className="text-gray-900">€{Number(plan.amazonDetails.fulfillmentCost).toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Fee per Item</label>
-                  <p className="text-gray-900">€{plan.amazonDetails.feePerItem.toFixed(2)}</p>
+                  <p className="text-gray-900">€{Number(plan.amazonDetails.feePerItem).toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Storage Fees</label>
-                  <p className="text-gray-900">€{plan.amazonDetails.storageFees.toFixed(2)}</p>
+                  <p className="text-gray-900">€{Number(plan.amazonDetails.storageFees).toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Fulfillment Type</label>
@@ -219,17 +219,17 @@ export default function ViewPlan({ planId }: ViewPlanProps) {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm font-medium text-gray-700">Total Revenue:</span>
-              <span className="text-gray-900">€{(plan.sellPrice + plan.shippingCharges).toFixed(2)}</span>
+              <span className="text-gray-900">€{(Number(plan.sellPrice) + Number(plan.shippingCharges)).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium text-gray-700">Total Costs:</span>
-              <span className="text-gray-900">€{(plan.unitPrice + plan.shippingCost).toFixed(2)}</span>
+              <span className="text-gray-900">€{(Number(plan.unitPrice) + Number(plan.shippingCost)).toFixed(2)}</span>
             </div>
             <div className="border-t pt-3">
               <div className="flex justify-between">
                 <span className="text-lg font-semibold text-gray-900">Profit:</span>
-                <span className={`text-lg font-semibold ${plan.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  €{plan.profit.toFixed(2)}
+                <span className={`text-lg font-semibold ${Number(plan.profit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  €{Number(plan.profit).toFixed(2)}
                 </span>
               </div>
             </div>

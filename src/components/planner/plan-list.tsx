@@ -219,14 +219,14 @@ export default function PlanList() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(plan.unitPrice)}
+                      {formatCurrency(Number(plan.unitPrice))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(plan.sellPrice)}
+                      {formatCurrency(Number(plan.sellPrice))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <span className={getProfitColor(plan.profit)}>
-                        {formatCurrency(plan.profit)}
+                      <span className={getProfitColor(Number(plan.profit))}>
+                        {formatCurrency(Number(plan.profit))}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

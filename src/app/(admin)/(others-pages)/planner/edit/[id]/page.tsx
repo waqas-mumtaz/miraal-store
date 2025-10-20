@@ -1,11 +1,12 @@
 import EditPlan from "@/components/planner/edit-plan";
 
 interface EditPlanPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function EditPlanPage({ params }: EditPlanPageProps) {
-  return <EditPlan planId={params.id} />;
+export default async function EditPlanPage({ params }: EditPlanPageProps) {
+  const { id } = await params;
+  return <EditPlan planId={id} />;
 }
