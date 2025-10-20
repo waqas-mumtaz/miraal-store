@@ -10,13 +10,23 @@ interface Plan {
   unitPrice: number;
   sellPrice: number;
   sourceLink: string;
-  ebayLink: string;
-  vat: number;
-  ebayCommission: number;
   shippingCharges: number;
   shippingCost: number;
   status: string;
   profit: number;
+  marketplace: string;
+  ebayDetails?: {
+    ebayLink?: string;
+    vat: number;
+    ebayCommission: number;
+    advertisingPercentage: number;
+  };
+  amazonDetails?: {
+    fulfillmentCost: number;
+    feePerItem: number;
+    storageFees: number;
+    fulfillmentType: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +35,7 @@ export default function PlanList() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPlans();
@@ -49,6 +60,32 @@ export default function PlanList() {
       console.error('Error fetching plans:', error);
       setError('Failed to load plans');
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (planId: string) => {
+    if (!confirm('Are you sure you want to delete this plan?')) {
+      return;
+    }
+
+    setDeletingId(planId);
+    try {
+      const response = await fetch(`/api/planner/ebay/${planId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete plan');
+      }
+
+      // Remove the plan from the list
+      setPlans(plans.filter(plan => plan.id !== planId));
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      alert('Failed to delete plan');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -124,7 +161,7 @@ export default function PlanList() {
           <h1 className="text-2xl font-bold text-gray-900">Product Plans</h1>
           <p className="text-gray-600">Manage your product plans</p>
         </div>
-        <Link href="/planner/ebay/add">
+        <Link href="/planner/add">
           <Button>
             Add New Plan
           </Button>
@@ -203,17 +240,24 @@ export default function PlanList() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link
-                          href={`/planner/ebay/${plan.id}`}
-                          className="text-brand-600 hover:text-brand-900"
+                          href={`/planner/view/${plan.id}`}
+                          className="text-blue-600 hover:text-blue-900"
                         >
                           View
                         </Link>
                         <Link
-                          href={`/planner/ebay/edit/${plan.id}`}
-                          className="text-brand-600 hover:text-brand-900"
+                          href={`/planner/edit/${plan.id}`}
+                          className="text-green-600 hover:text-green-900"
                         >
                           Edit
                         </Link>
+                        <button
+                          onClick={() => handleDelete(plan.id)}
+                          disabled={deletingId === plan.id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                        >
+                          {deletingId === plan.id ? 'Deleting...' : 'Delete'}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -232,7 +276,7 @@ export default function PlanList() {
             Get started by creating your first product plan.
           </p>
           <div className="mt-6">
-            <Link href="/planner/ebay/add">
+            <Link href="/planner/add">
               <Button>
                 Add New Plan
               </Button>
