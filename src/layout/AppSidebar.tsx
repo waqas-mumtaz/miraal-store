@@ -43,14 +43,17 @@ const navItems: NavItem[] = [
       { name: "Add Expense", path: "/expenses/add", pro: false },
     ],
   },
-  {
-    name: "Planner",
-    icon: <ShootingStarIcon />,
-    subItems: [
-      { name: "Product Plans", path: "/planner", pro: false },
-      { name: "Add Product Plan", path: "/planner/add", pro: false },
-    ],
-  },
+      {
+        name: "Planner",
+        icon: <ShootingStarIcon />,
+        subItems: [
+          { name: "Product Plans", path: "/planner", pro: false },
+          { name: "eBay Plans", path: "/planner/ebay", pro: false },
+          { name: "Amazon Plans", path: "/planner/amazon", pro: false },
+          { name: "Add eBay Plan", path: "/planner/ebay/add", pro: false },
+          { name: "Add Amazon Plan", path: "/planner/amazon/add", pro: false },
+        ],
+      },
 ];
 
 const othersItems: NavItem[] = [

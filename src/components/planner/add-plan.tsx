@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Form from "@/components/form/Form";
 import { usePlanForm, useProfitCalculation } from "./hooks";
 import { ProductInfoForm, CostsForm, StatusProfitForm, ErrorDisplay, MarketplaceSelector } from "./components";
 
 export default function AddPlan() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -16,8 +17,18 @@ export default function AddPlan() {
     formData,
     handleInputChange,
     handleMarketplaceChange,
+    setMarketplace,
     isNumericField,
   } = usePlanForm();
+
+  // Set marketplace based on URL
+  useEffect(() => {
+    if (pathname.includes('/ebay/')) {
+      setMarketplace('ebay');
+    } else if (pathname.includes('/amazon/')) {
+      setMarketplace('amazon');
+    }
+  }, [pathname, setMarketplace]);
 
   const { profitBreakdown, updateProfit } = useProfitCalculation();
 
@@ -53,7 +64,14 @@ export default function AddPlan() {
         throw new Error(errorData.error || "Failed to create plan");
       }
 
-      router.push("/planner");
+      // Redirect to the appropriate marketplace page
+      if (marketplace === 'ebay') {
+        router.push("/planner/ebay");
+      } else if (marketplace === 'amazon') {
+        router.push("/planner/amazon");
+      } else {
+        router.push("/planner");
+      }
     } catch (error) {
       console.error("Error creating plan:", error);
       setError(error instanceof Error ? error.message : "Failed to create plan");
@@ -62,10 +80,22 @@ export default function AddPlan() {
     }
   };
 
+  const getPageTitle = () => {
+    if (marketplace === 'ebay') return 'Add eBay Plan';
+    if (marketplace === 'amazon') return 'Add Amazon Plan';
+    return 'Add Product Plan';
+  };
+
+  const getPageDescription = () => {
+    if (marketplace === 'ebay') return 'Create a new eBay product plan with commission and advertising calculations';
+    if (marketplace === 'amazon') return 'Create a new Amazon product plan with fulfillment and storage calculations';
+    return 'Create a new product plan for your marketplace';
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Product Plan</h1>
-      <p className="text-gray-600 mb-6">Create a new product plan for your marketplace</p>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">{getPageTitle()}</h1>
+      <p className="text-gray-600 mb-6">{getPageDescription()}</p>
 
       <Form onSubmit={handleSubmit} className="space-y-6">
         <MarketplaceSelector 

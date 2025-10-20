@@ -19,7 +19,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* VAT */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</label>
+          <Label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</Label>
           <Input 
             type="number" 
             name="vat" 
@@ -36,7 +36,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         {/* eBay Commission - only show for eBay */}
         {marketplace === "ebay" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">eBay Commission (%)</label>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">eBay Commission (%)</Label>
             <Input 
               type="number" 
               name="ebayCommission" 
@@ -54,7 +54,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         {/* Advertising - only show for eBay */}
         {marketplace === "ebay" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Advertising (%)</label>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">Advertising (%)</Label>
             <Input 
               type="number" 
               name="advertisingPercentage" 
@@ -74,7 +74,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         {marketplace === "amazon" && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Cost (€)</label>
+              <Label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Cost (€)</Label>
               <Input 
                 type="number" 
                 name="fulfillmentCost" 
@@ -88,7 +88,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Type</label>
+              <Label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Type</Label>
               <Select
                 options={[
                   { value: "FBA", label: "FBA (Fulfilled by Amazon)" },
@@ -105,7 +105,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         {/* Amazon Fee per Item - only show for Amazon */}
         {marketplace === "amazon" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Fee per Item Sold (€)</label>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">Fee per Item Sold (€)</Label>
             <Input 
               type="number" 
               name="feePerItem" 
@@ -121,7 +121,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
 
         {/* Storage Fees - only show for Amazon */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Storage Fees (€)</label>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">Storage Fees (€)</Label>
             <Input
               type="number"
               name="storageFees"
@@ -135,7 +135,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
           </div>
         {/* Shipping Charges */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Charges (from buyer) (€)</label>
+          <Label className="block text-sm font-medium text-gray-700 mb-2">Shipping Charges (from buyer) (€)</Label>
           <Input 
             type="number" 
             name="shippingCharges" 
@@ -149,7 +149,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
 
         {/* Shipping Cost */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Cost (€)</label>
+          <Label className="block text-sm font-medium text-gray-700 mb-2">Shipping Cost (€)</Label>
           <Input 
             type="number" 
             name="shippingCost" 
