@@ -121,8 +121,8 @@ export default function PlanList() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">eBay Plans</h1>
-          <p className="text-gray-600">Manage your eBay product plans</p>
+          <h1 className="text-2xl font-bold text-gray-900">Product Plans</h1>
+          <p className="text-gray-600">Manage your product plans</p>
         </div>
         <Link href="/planner/ebay/add">
           <Button>
@@ -229,7 +229,7 @@ export default function PlanList() {
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No plans found</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Get started by creating your first eBay plan.
+            Get started by creating your first product plan.
           </p>
           <div className="mt-6">
             <Link href="/planner/ebay/add">

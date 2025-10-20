@@ -47,8 +47,8 @@ const navItems: NavItem[] = [
     name: "Planner",
     icon: <ShootingStarIcon />,
     subItems: [
-      { name: "eBay Plans", path: "/planner/ebay", pro: false },
-      { name: "Add eBay Plan", path: "/planner/ebay/add", pro: false },
+      { name: "Product Plans", path: "/planner/ebay", pro: false },
+      { name: "Add Product Plan", path: "/planner/ebay/add", pro: false },
     ],
   },
 ];
