@@ -67,7 +67,6 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             />
             <p className="text-xs text-gray-500 mt-1">€{advertisingAmount.toFixed(2)} (VAT included)</p>
           </div>
-          
         )}
 
 
@@ -75,7 +74,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         {marketplace === "amazon" && (
           <>
             <div>
-              <Label>Fulfillment Cost (€)</Label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Cost (€)</label>
               <Input 
                 type="number" 
                 name="fulfillmentCost" 
@@ -89,7 +88,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             </div>
 
             <div>
-              <Label>Fulfillment Type</Label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Type</label>
               <Select
                 options={[
                   { value: "FBA", label: "FBA (Fulfilled by Amazon)" },
@@ -118,20 +117,23 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             />
             <p className="text-xs text-gray-500 mt-1">Amazon fees per individual item sold</p>
           </div>
-            <div>
-              <Label>Storage Fees (€)</Label>
-              <Input
-                type="number"
-                name="storageFees"
-                value={formData.storageFees || ""}
-                onChange={onChange} 
-                placeholder="0.00"
-                step={0.01}
-                min="0"
-              />
-              <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
-            </div>
-          </>
+        )}
+
+        {/* Storage Fees - only show for Amazon */}
+        {marketplace === "amazon" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Storage Fees (€)</label>
+            <Input
+              type="number"
+              name="storageFees"
+              value={formData.storageFees || ""}
+              onChange={onChange} 
+              placeholder="0.00"
+              step={0.01}
+              min="0"
+            />
+            <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
+          </div>
         )}
         {/* Shipping Charges */}
         <div>

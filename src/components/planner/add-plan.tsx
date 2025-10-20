@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Form from "@/components/form/Form";
 import { usePlanForm, useProfitCalculation } from "./hooks";
 import { ProductInfoForm, CostsForm, StatusProfitForm, ErrorDisplay, MarketplaceSelector } from "./components";
-import { NUMERIC_FIELDS } from "./types";
 
 export default function AddPlan() {
   const router = useRouter();

@@ -21,6 +21,7 @@ export const useProfitCalculation = () => {
     const vat = toNumber(data.vat);
     const shippingCost = toNumber(data.shippingCost);
     const unitPrice = toNumber(data.unitPrice);
+    const storageFees = toNumber(data.storageFees || 0);
 
     const totalRevenue = sellPrice + shippingCharges;
     const netRevenue = totalRevenue / (1 + vat / 100);
@@ -45,7 +46,7 @@ export const useProfitCalculation = () => {
       marketplaceFee = feePerItem + fulfillmentCost;
     }
 
-    const totalCosts = marketplaceFee + shippingCost + unitPrice;
+    const totalCosts = marketplaceFee + shippingCost + unitPrice + storageFees;
     const profit = netRevenue - totalCosts;
 
     return { profit, netRevenue, totalRevenue, ebayCommissionAmount, advertisingAmount, totalCosts, marketplaceFee };
