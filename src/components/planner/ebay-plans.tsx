@@ -153,9 +153,9 @@ export default function EbayPlans() {
           <h1 className="text-2xl font-bold text-gray-900">eBay Plans</h1>
           <p className="text-gray-600">Manage your eBay product plans</p>
         </div>
-        <Link href="/planner/ebay/add">
+        <Link href="/planner/add">
           <Button>
-            Add New eBay Plan
+            Add New Plan
           </Button>
         </Link>
       </div>
@@ -279,9 +279,9 @@ export default function EbayPlans() {
             Get started by creating your first eBay product plan.
           </p>
           <div className="mt-6">
-            <Link href="/planner/ebay/add">
+            <Link href="/planner/add">
               <Button>
-                Add New eBay Plan
+                Add New Plan
               </Button>
             </Link>
           </div>

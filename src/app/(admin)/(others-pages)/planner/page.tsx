@@ -35,9 +35,9 @@ export default function PlannerPage() {
                   View eBay Plans
                 </Button>
               </Link>
-              <Link href="/planner/ebay/add">
+              <Link href="/planner/add">
                 <Button className="w-full">
-                  Add eBay Plan
+                  Add Plan
                 </Button>
               </Link>
             </div>
@@ -65,9 +65,9 @@ export default function PlannerPage() {
                   View Amazon Plans
                 </Button>
               </Link>
-              <Link href="/planner/amazon/add">
+              <Link href="/planner/add">
                 <Button className="w-full">
-                  Add Amazon Plan
+                  Add Plan
                 </Button>
               </Link>
             </div>
@@ -108,7 +108,7 @@ export default function PlannerPage() {
                 </div>
               </div>
             </Link>
-            <Link href="/planner/ebay/add" className="block">
+            <Link href="/planner/add" className="block">
               <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-300 transition-colors">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">

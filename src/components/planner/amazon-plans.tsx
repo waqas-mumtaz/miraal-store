@@ -153,9 +153,9 @@ export default function AmazonPlans() {
           <h1 className="text-2xl font-bold text-gray-900">Amazon Plans</h1>
           <p className="text-gray-600">Manage your Amazon product plans</p>
         </div>
-        <Link href="/planner/amazon/add">
+        <Link href="/planner/add">
           <Button>
-            Add New Amazon Plan
+            Add New Plan
           </Button>
         </Link>
       </div>
@@ -273,9 +273,9 @@ export default function AmazonPlans() {
             Get started by creating your first Amazon product plan.
           </p>
           <div className="mt-6">
-            <Link href="/planner/amazon/add">
+            <Link href="/planner/add">
               <Button>
-                Add New Amazon Plan
+                Add New Plan
               </Button>
             </Link>
           </div>
