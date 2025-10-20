@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Form from "@/components/form/Form";
 import { usePlanForm, useProfitCalculation } from "./hooks";
 import { ProductInfoForm, CostsForm, StatusProfitForm, ErrorDisplay, MarketplaceSelector } from "./components";
 import { NUMERIC_FIELDS } from "./types";
@@ -67,7 +68,7 @@ export default function AddPlan() {
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Product Plan</h1>
       <p className="text-gray-600 mb-6">Create a new product plan for your marketplace</p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <Form onSubmit={handleSubmit} className="space-y-6">
         <MarketplaceSelector 
           marketplace={marketplace} 
           onChange={handleMarketplaceFormChange} 
@@ -88,7 +89,7 @@ export default function AddPlan() {
           onCancel={() => router.back()}
         />
         <ErrorDisplay error={error} />
-      </form>
+      </Form>
     </div>
   );
 }

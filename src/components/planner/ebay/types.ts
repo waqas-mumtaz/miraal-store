@@ -12,6 +12,8 @@ export interface PlanFormData {
   shippingCharges: string | number;
   shippingCost: string | number;
   status: string;
+  fulfillmentType: "FBA" | "FBM";
+  storageFees: string | number;
 }
 
 export interface ProfitBreakdown {
@@ -34,6 +36,7 @@ export const NUMERIC_FIELDS = [
   "advertisingPercentage",
   "fulfillmentCost",
   "feePerItem",
+  "storageFees",
   "shippingCost",
   "unitPrice",
 ] as const;

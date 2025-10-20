@@ -1,4 +1,6 @@
 import Input from "@/components/form/input/InputField";
+import Select from "@/components/form/Select";
+import Label from "@/components/form/Label";
 import { PlanFormData, ProfitBreakdown, Marketplace } from "../types";
 
 interface CostsFormProps {
@@ -9,7 +11,7 @@ interface CostsFormProps {
 }
 
 export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: CostsFormProps) => {
-  const { netRevenue, ebayCommissionAmount, advertisingAmount, marketplaceFee } = profitBreakdown;
+  const { netRevenue, ebayCommissionAmount, advertisingAmount } = profitBreakdown;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -67,21 +69,51 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
           </div>
         )}
 
+
         {/* Amazon Fulfillment - only show for Amazon */}
         {marketplace === "amazon" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Cost (€)</label>
-            <Input 
-              type="number" 
-              name="fulfillmentCost" 
-              value={formData.fulfillmentCost || ""} 
-              onChange={onChange} 
-              placeholder="0.00" 
-              step={0.01} 
-              min="0" 
-            />
-            <p className="text-xs text-gray-500 mt-1">Amazon fulfillment and storage fees</p>
-          </div>
+          <>
+            <div>
+              <Label>Fulfillment Cost (€)</Label>
+              <Input 
+                type="number" 
+                name="fulfillmentCost" 
+                value={formData.fulfillmentCost || ""} 
+                onChange={onChange} 
+                placeholder="0.00" 
+                step={0.01} 
+                min="0" 
+              />
+              <p className="text-xs text-gray-500 mt-1">Amazon fulfillment and storage fees</p>
+            </div>
+
+            <div>
+              <Label>Fulfillment Type</Label>
+              <Select
+                options={[
+                  { value: "FBA", label: "FBA (Fulfilled by Amazon)" },
+                  { value: "FBM", label: "FBM (Fulfilled by Merchant)" }
+                ]}
+                placeholder="Select fulfillment type"
+                onChange={(value) => onChange({ target: { name: "fulfillmentType", value } } as any)}
+                defaultValue={formData.fulfillmentType}
+              />
+            </div>
+
+            <div>
+              <Label>Storage Fees (€)</Label>
+              <Input
+                type="number"
+                name="storageFees"
+                value={formData.storageFees || ""}
+                onChange={onChange} 
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
+            </div>
+          </>
         )}
 
         {/* Amazon Fee per Item - only show for Amazon */}

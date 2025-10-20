@@ -14,14 +14,16 @@ export const usePlanForm = () => {
     advertisingPercentage: "",
     fulfillmentCost: "",
     feePerItem: "",
+    storageFees: "",
     shippingCharges: "",
     shippingCost: "",
     status: "planned",
+    fulfillmentType: "FBA",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const newValue = ["productName", "sourceLink", "ebayLink", "status"].includes(name)
+    const newValue = ["productName", "sourceLink", "ebayLink", "status", "fulfillmentType"].includes(name)
       ? value
       : value === ""
       ? ""

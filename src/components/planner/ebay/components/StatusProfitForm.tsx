@@ -1,4 +1,5 @@
 import Button from "@/components/ui/button/Button";
+import Label from "@/components/form/Label";
 import { PlanFormData, ProfitBreakdown } from "../types";
 
 interface StatusProfitFormProps {
@@ -25,7 +26,7 @@ export const StatusProfitForm = ({
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Status & Profit</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+          <Label>Status *</Label>
           <select
             name="status"
             value={formData.status}
@@ -40,7 +41,7 @@ export const StatusProfitForm = ({
 
         {/* Profit */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Calculated Profit</label>
+          <Label>Calculated Profit</Label>
           <div className={`h-11 w-full rounded-lg border px-4 py-2.5 text-sm font-medium ${
             profit >= 0 ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
           }`}>

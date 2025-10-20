@@ -1,4 +1,5 @@
 import Input from "@/components/form/input/InputField";
+import Label from "@/components/form/Label";
 import { PlanFormData } from "../types";
 
 interface ProductInfoFormProps {
@@ -12,7 +13,7 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
+          <Label>Product Name *</Label>
           <Input 
             type="text" 
             name="productName" 
@@ -22,7 +23,7 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Unit Price *</label>
+          <Label>Unit Price *</Label>
           <Input 
             type="number" 
             name="unitPrice" 
@@ -34,7 +35,7 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Sell Price *</label>
+          <Label>Sell Price *</Label>
           <Input 
             type="number" 
             name="sellPrice" 
@@ -46,7 +47,7 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Source Link *</label>
+          <Label>Source Link *</Label>
           <Input 
             type="url" 
             name="sourceLink" 
@@ -56,7 +57,7 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">eBay Link</label>
+          <Label>eBay Link</Label>
           <Input 
             type="url" 
             name="ebayLink" 
