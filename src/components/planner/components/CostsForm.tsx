@@ -120,7 +120,6 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
         )}
 
         {/* Storage Fees - only show for Amazon */}
-        {marketplace === "amazon" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Storage Fees (€)</label>
             <Input
@@ -134,7 +133,6 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             />
             <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
           </div>
-        )}
         {/* Shipping Charges */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Charges (from buyer) (€)</label>

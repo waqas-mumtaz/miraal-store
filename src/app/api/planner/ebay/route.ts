@@ -14,10 +14,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get all plans for the user
-    const plans = await prisma.ebayPlan.findMany({
+    // Get all plans for the user with their marketplace-specific details
+    const plans = await prisma.plan.findMany({
       where: {
         userId: user.id,
+      },
+      include: {
+        ebayDetails: true,
+        amazonDetails: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -64,40 +68,71 @@ export async function POST(request: NextRequest) {
       shippingCost,
       status,
       profit,
+      marketplace,
     } = body;
 
     // Validate required fields
-    if (!productName || !unitPrice || !sellPrice || !sourceLink || !status) {
+    if (!productName || !unitPrice || !sellPrice || !sourceLink || !status || !marketplace) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Create the plan
-    const plan = await prisma.ebayPlan.create({
-      data: {
-        productName,
-        unitPrice: parseFloat(unitPrice),
-        sellPrice: parseFloat(sellPrice),
-        sourceLink,
-        ebayLink: ebayLink || null,
-        vat: parseFloat(vat || 0),
-        ebayCommission: parseFloat(ebayCommission || 15),
-        advertisingPercentage: parseFloat(advertisingPercentage || 0),
-        fulfillmentCost: parseFloat(fulfillmentCost || 0),
-        feePerItem: parseFloat(feePerItem || 0),
-        storageFees: parseFloat(storageFees || 0),
-        fulfillmentType: fulfillmentType || "FBA",
-        shippingCharges: parseFloat(shippingCharges || 0),
-        shippingCost: parseFloat(shippingCost || 0),
-        status,
-        profit: parseFloat(profit || 0),
-        userId: user.id,
+    // Create the plan with marketplace-specific details using transaction
+    const plan = await prisma.$transaction(async (tx) => {
+      // Create the main plan
+      const newPlan = await tx.plan.create({
+        data: {
+          productName,
+          unitPrice: parseFloat(unitPrice),
+          sellPrice: parseFloat(sellPrice),
+          sourceLink,
+          shippingCharges: parseFloat(shippingCharges || 0),
+          shippingCost: parseFloat(shippingCost || 0),
+          status,
+          profit: parseFloat(profit || 0),
+          marketplace,
+          userId: user.id,
+        },
+      });
+
+      // Create marketplace-specific details
+      if (marketplace === "ebay") {
+        await tx.ebayPlanDetails.create({
+          data: {
+            planId: newPlan.id,
+            ebayLink: ebayLink || null,
+            vat: parseFloat(vat || 0),
+            ebayCommission: parseFloat(ebayCommission || 15),
+            advertisingPercentage: parseFloat(advertisingPercentage || 0),
+          },
+        });
+      } else if (marketplace === "amazon") {
+        await tx.amazonPlanDetails.create({
+          data: {
+            planId: newPlan.id,
+            fulfillmentCost: parseFloat(fulfillmentCost || 0),
+            feePerItem: parseFloat(feePerItem || 0),
+            storageFees: parseFloat(storageFees || 0),
+            fulfillmentType: fulfillmentType || "FBA",
+          },
+        });
+      }
+
+      return newPlan;
+    });
+
+    // Return the plan with its details
+    const planWithDetails = await prisma.plan.findUnique({
+      where: { id: plan.id },
+      include: {
+        ebayDetails: true,
+        amazonDetails: true,
       },
     });
 
-    return NextResponse.json(plan, { status: 201 });
+    return NextResponse.json(planWithDetails, { status: 201 });
   } catch (error) {
     console.error("Error creating plan:", error);
     return NextResponse.json(

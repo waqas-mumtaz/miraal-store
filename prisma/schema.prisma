@@ -27,7 +27,7 @@ model User {
   // Relations
   invoices Invoice[]
   expenses Expense[]
-  ebayPlans EbayPlan[]
+  plans Plan[]
 
   @@map("users")
 }
@@ -84,33 +84,64 @@ model Expense {
   @@map("expenses")
 }
 
-// eBay Plan model for tracking eBay selling plans
-model EbayPlan {
+// Parent Plan model - stores common fields across all marketplaces
+model Plan {
   id              String   @id @default(cuid())
   productName     String
   unitPrice       Decimal  @db.Decimal(10, 2)
   sellPrice       Decimal  @db.Decimal(10, 2)
   sourceLink      String
-  ebayLink        String?
-  vat             Decimal  @db.Decimal(10, 2) @default(0)
-  ebayCommission  Decimal  @db.Decimal(5, 2) @default(15)
-  advertisingPercentage Decimal @db.Decimal(5, 2) @default(0)
-  fulfillmentCost Decimal  @db.Decimal(10, 2) @default(0)
-  feePerItem      Decimal  @db.Decimal(10, 2) @default(0)
-  storageFees      Decimal  @db.Decimal(10, 2) @default(0)
-  fulfillmentType String   @default("FBA")
   shippingCharges Decimal  @db.Decimal(10, 2) @default(0)
   shippingCost    Decimal  @db.Decimal(10, 2) @default(0)
   status          String   @default("planned")
   profit          Decimal  @db.Decimal(10, 2)
+  marketplace     String   // "ebay" or "amazon"
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Child relations
+  ebayDetails     EbayPlanDetails?
+  amazonDetails   AmazonPlanDetails?
 
-  @@map("ebay_plans")
+  @@map("plans")
+}
+
+// eBay-specific plan details
+model EbayPlanDetails {
+  id              String   @id @default(cuid())
+  ebayLink        String?
+  vat             Decimal  @db.Decimal(10, 2) @default(0)
+  ebayCommission  Decimal  @db.Decimal(5, 2) @default(15)
+  advertisingPercentage Decimal @db.Decimal(5, 2) @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  planId          String   @unique
+  plan            Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("ebay_plan_details")
+}
+
+// Amazon-specific plan details
+model AmazonPlanDetails {
+  id              String   @id @default(cuid())
+  fulfillmentCost Decimal  @db.Decimal(10, 2) @default(0)
+  feePerItem      Decimal  @db.Decimal(10, 2) @default(0)
+  storageFees     Decimal  @db.Decimal(10, 2) @default(0)
+  fulfillmentType String   @default("FBA")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  planId          String   @unique
+  plan            Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("amazon_plan_details")
 }
 
 
