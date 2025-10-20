@@ -1,4 +1,4 @@
-import PlanList from "@/components/planner/ebay/plan-list";
+import PlanList from "@/components/planner/plan-list";
 
 export default function EbayPlannerPage() {
   return <PlanList />;
