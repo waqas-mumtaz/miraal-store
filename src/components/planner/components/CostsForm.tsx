@@ -1,7 +1,7 @@
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
-import { PlanFormData, ProfitBreakdown, Marketplace } from "../types";
+import { PlanFormData, ProfitBreakdown, Marketplace } from "../../types";
 
 interface CostsFormProps {
   formData: PlanFormData;
