@@ -1,7 +1,7 @@
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
-import { PlanFormData, ProfitBreakdown, Marketplace } from "../../types";
+import { PlanFormData, ProfitBreakdown, Marketplace } from "../types";
 
 interface CostsFormProps {
   formData: PlanFormData;
@@ -67,6 +67,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             />
             <p className="text-xs text-gray-500 mt-1">€{advertisingAmount.toFixed(2)} (VAT included)</p>
           </div>
+          
         )}
 
 
@@ -99,20 +100,6 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
                 defaultValue={formData.fulfillmentType}
               />
             </div>
-
-            <div>
-              <Label>Storage Fees (€)</Label>
-              <Input
-                type="number"
-                name="storageFees"
-                value={formData.storageFees || ""}
-                onChange={onChange} 
-                placeholder="0.00"
-                step={0.01}
-                min="0"
-              />
-              <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
-            </div>
           </>
         )}
 
@@ -131,9 +118,21 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
             />
             <p className="text-xs text-gray-500 mt-1">Amazon fees per individual item sold</p>
           </div>
+            <div>
+              <Label>Storage Fees (€)</Label>
+              <Input
+                type="number"
+                name="storageFees"
+                value={formData.storageFees || ""}
+                onChange={onChange} 
+                placeholder="0.00"
+                step={0.01}
+                min="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">Monthly storage fees</p>
+            </div>
+          </>
         )}
-
-
         {/* Shipping Charges */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Charges (from buyer) (€)</label>

@@ -42,7 +42,7 @@ export default function AddPlan() {
     setError("");
 
     try {
-      const response = await fetch("/api/planner", {
+      const response = await fetch("/api/planner/ebay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
