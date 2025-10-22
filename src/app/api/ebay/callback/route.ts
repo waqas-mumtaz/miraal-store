@@ -40,7 +40,13 @@ export async function GET(request: NextRequest) {
     })
 
     // Redirect back to the application
-    return NextResponse.redirect(new URL('/ebay/orders?ebay_connected=true', request.url))
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NODE_ENV === 'production' 
+        ? 'https://miraal-store.vercel.app' 
+        : 'http://localhost:3000'
+    
+    return NextResponse.redirect(new URL('/ebay/orders?ebay_connected=true', baseUrl))
     
   } catch (error) {
     console.error('eBay callback error:', error)
