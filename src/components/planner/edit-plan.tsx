@@ -10,16 +10,18 @@ import { NUMERIC_FIELDS } from "./types";
 interface Plan {
   id: string;
   productName: string;
+  ean?: string;
   unitPrice: number;
   sellPrice: number;
   sourceLink: string;
+  soldItems: number;
   shippingCharges: number;
   shippingCost: number;
   status: string;
   profit: number;
   marketplace: string;
   ebayDetails?: {
-    ebayLink?: string;
+    productLink?: string;
     vat: number;
     ebayCommission: number;
     advertisingPercentage: number;
@@ -71,10 +73,12 @@ export default function EditPlan({ planId }: EditPlanProps) {
         // Populate form data
         setFormData({
           productName: plan.productName,
+          ean: plan.ean || "",
           unitPrice: Number(plan.unitPrice).toString(),
           sellPrice: Number(plan.sellPrice).toString(),
           sourceLink: plan.sourceLink,
-          ebayLink: plan.ebayDetails?.ebayLink || "",
+          productLink: plan.ebayDetails?.productLink || "",
+          soldItems: plan.soldItems ? Number(plan.soldItems).toString() : "0",
           vat: plan.ebayDetails?.vat ? Number(plan.ebayDetails.vat).toString() : "0",
           ebayCommission: plan.ebayDetails?.ebayCommission ? Number(plan.ebayDetails.ebayCommission).toString() : "15",
           advertisingPercentage: plan.ebayDetails?.advertisingPercentage ? Number(plan.ebayDetails.advertisingPercentage).toString() : "0",

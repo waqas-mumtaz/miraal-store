@@ -7,7 +7,7 @@ export interface PlanFormData {
   productLink: string;
   soldItems: string | number;
   vat: string | number;
-  ebayCommission: number;
+  ebayCommission: string | number;
   advertisingPercentage: string | number;
   fulfillmentCost?: string | number;
   feePerItem?: string | number;
