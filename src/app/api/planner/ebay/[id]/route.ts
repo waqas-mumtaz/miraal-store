@@ -105,7 +105,7 @@ export async function PUT(
     }
 
     // Update the plan with marketplace-specific details using transaction
-    const updatedPlan = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update the main plan
       const plan = await tx.plan.update({
         where: { id },

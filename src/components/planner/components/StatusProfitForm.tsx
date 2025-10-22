@@ -16,7 +16,7 @@ export const StatusProfitForm = ({
   profitBreakdown, 
   isLoading, 
   onChange, 
-  onSubmit, 
+  // onSubmit, // Not used in current implementation 
   onCancel 
 }: StatusProfitFormProps) => {
   const { profit } = profitBreakdown;

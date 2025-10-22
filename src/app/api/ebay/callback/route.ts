@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const isAuthSuccessful = searchParams.get('isAuthSuccessful')
     const SessID = searchParams.get('SessID')
-    const runame = searchParams.get('runame')
+    // const runame = searchParams.get('runame') // Not used in current implementation
 
     // Handle Auth'n'auth errors
     if (isAuthSuccessful === 'false' || !SessID) {

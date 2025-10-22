@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+// import { prisma } from '@/lib/prisma' // Not used in current implementation
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,16 +16,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has eBay credentials stored
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        // Add these fields to your User model if you want to store eBay tokens
-        // ebayAccessToken: true,
-        // ebayRefreshToken: true,
-        // ebayTokenExpiry: true,
-      }
-    })
+    // const dbUser = await prisma.user.findUnique({
+    //   where: { id: user.id },
+    //   select: {
+    //     id: true,
+    //     // Add these fields to your User model if you want to store eBay tokens
+    //     // ebayAccessToken: true,
+    //     // ebayRefreshToken: true,
+    //     // ebayTokenExpiry: true,
+    //   }
+    // })
 
     // For now, we'll just return false since we haven't implemented token storage yet
     // You can implement this later when you add the fields to your User model

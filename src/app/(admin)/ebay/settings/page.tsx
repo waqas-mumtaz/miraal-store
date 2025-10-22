@@ -23,7 +23,7 @@ export default function EbaySettingsPage() {
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">Settings Configuration</h3>
           <p className="mt-1 text-sm text-gray-500">
-            This feature is coming soon. You'll be able to configure your eBay integration settings here.
+            This feature is coming soon. You&apos;ll be able to configure your eBay integration settings here.
           </p>
         </div>
       </div>

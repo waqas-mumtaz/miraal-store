@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Button from '@/components/ui/button/Button';
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext' // Not used in current implementation;
 
 interface EbayIntegrationProps {
   onConnectionChange?: (connected: boolean) => void;
 }
 
 export default function EbayIntegration({ onConnectionChange }: EbayIntegrationProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Not used in current implementation
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check if eBay is connected
-  useEffect(() => {
-    checkEbayConnection();
-  }, []);
-
-  const checkEbayConnection = async () => {
+  const checkEbayConnection = useCallback(async () => {
     try {
       const response = await fetch('/api/ebay/status');
       if (response.ok) {
@@ -30,7 +25,12 @@ export default function EbayIntegration({ onConnectionChange }: EbayIntegrationP
     } catch (error) {
       console.error('Error checking eBay connection:', error);
     }
-  };
+  }, [onConnectionChange]);
+
+  // Check if eBay is connected
+  useEffect(() => {
+    checkEbayConnection();
+  }, [checkEbayConnection]);
 
   const handleConnect = async () => {
     setIsLoading(true);
