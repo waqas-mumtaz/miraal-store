@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Button from "@/components/ui/button/Button";
+import EbayIntegration from "@/components/ebay/EbayIntegration";
 
 export default function PlannerPage() {
   return (
@@ -72,6 +73,11 @@ export default function PlannerPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* eBay Integration */}
+        <div className="mt-8">
+          <EbayIntegration />
         </div>
 
         {/* Quick Stats */}
