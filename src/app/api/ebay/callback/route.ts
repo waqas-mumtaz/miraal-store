@@ -5,15 +5,22 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const isAuthSuccessful = searchParams.get('isAuthSuccessful')
-    const SessID = searchParams.get('SessID')
-    // const runame = searchParams.get('runame') // Not used in current implementation
+    const code = searchParams.get('code')
+    const state = searchParams.get('state')
+    const error = searchParams.get('error')
 
-    // Handle Auth'n'auth errors
-    if (isAuthSuccessful === 'false' || !SessID) {
+    // Handle OAuth errors
+    if (error) {
       return NextResponse.json({
-        error: 'eBay Auth failed',
-        details: 'User declined authorization or session failed'
+        error: 'eBay OAuth failed',
+        details: `OAuth error: ${error}`
+      }, { status: 400 })
+    }
+
+    if (!code) {
+      return NextResponse.json({
+        error: 'eBay OAuth failed',
+        details: 'No authorization code received'
       }, { status: 400 })
     }
 

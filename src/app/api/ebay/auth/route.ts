@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildAuthUrl } from '@/lib/ebay'
+import { buildOAuthUrl } from '@/lib/ebay'
 import { verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -15,18 +15,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Build Auth'n'auth URL
-    const authUrl = buildAuthUrl()
+    // Generate a random state for security
+    const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    
+    // Build OAuth URL
+    const oauthUrl = buildOAuthUrl(state)
     
     // Debug: Log the generated URL
-    console.log('Generated Auth URL:', authUrl)
+    console.log('Generated OAuth URL:', oauthUrl)
     console.log('Environment variables:', {
       EBAY_APP_ID: process.env.EBAY_APP_ID,
-      EBAY_RU_NAME: process.env.EBAY_RU_NAME
+      EBAY_REDIRECT_URI: process.env.EBAY_REDIRECT_URI
     })
     
     return NextResponse.json({
-      authUrl,
+      oauthUrl,
       message: 'Redirect user to this URL to authorize eBay access'
     })
     

@@ -59,7 +59,21 @@ export function getEbayConfig() {
   return isProduction ? EBAY_CONFIG.PRODUCTION : EBAY_CONFIG.SANDBOX
 }
 
-// Helper function to build Auth'n'auth URL
+// Helper function to build OAuth URL
+export function buildOAuthUrl(state: string) {
+  const config = getEbayConfig()
+  const params = new URLSearchParams({
+    client_id: EBAY_CREDENTIALS.APP_ID,
+    response_type: 'code',
+    redirect_uri: config.REDIRECT_URI,
+    scope: EBAY_SCOPES.join(' '),
+    state: state
+  })
+  
+  return `${config.AUTH_URL}${EBAY_ENDPOINTS.OAUTH_AUTHORIZE}?${params.toString()}`
+}
+
+// Helper function to build Auth'n'auth URL (for reference, but OAuth is better for web apps)
 export function buildAuthUrl() {
   // Auth'n'auth uses a different URL format
   const params = new URLSearchParams({
