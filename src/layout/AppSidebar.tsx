@@ -53,6 +53,16 @@ const navItems: NavItem[] = [
           { name: "Add Product Plan", path: "/planner/add", pro: false },
         ],
       },
+      {
+        name: "eBay",
+        icon: <BoxCubeIcon />,
+        subItems: [
+          { name: "Orders", path: "/ebay/orders", pro: false },
+          { name: "Listings", path: "/ebay/listings", pro: false },
+          { name: "Analytics", path: "/ebay/analytics", pro: false },
+          { name: "Settings", path: "/ebay/settings", pro: false },
+        ],
+      },
 ];
 
 const othersItems: NavItem[] = [

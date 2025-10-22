@@ -4,7 +4,7 @@ export const EBAY_CONFIG = {
   SANDBOX: {
     BASE_URL: 'https://api.sandbox.ebay.com',
     AUTH_URL: 'https://auth.sandbox.ebay.com',
-    REDIRECT_URI: process.env.EBAY_REDIRECT_URI || 'http://localhost:3001/api/ebay/callback',
+    REDIRECT_URI: process.env.EBAY_REDIRECT_URI || 'http://localhost:3000/api/ebay/callback',
   },
   // Production URLs (for later)
   PRODUCTION: {
@@ -44,17 +44,13 @@ export const EBAY_ENDPOINTS = {
   GET_ORDER: '/sell/fulfillment/v1/order',
 }
 
-// eBay API Scopes (permissions)
+// eBay API Scopes (permissions) - Updated for correct format
 export const EBAY_SCOPES = [
   'https://api.ebay.com/oauth/api_scope',
   'https://api.ebay.com/oauth/api_scope/sell.marketing.readonly',
-  'https://api.ebay.com/oauth/api_scope/sell.marketing',
   'https://api.ebay.com/oauth/api_scope/sell.inventory.readonly',
-  'https://api.ebay.com/oauth/api_scope/sell.inventory',
   'https://api.ebay.com/oauth/api_scope/sell.account.readonly',
-  'https://api.ebay.com/oauth/api_scope/sell.account',
   'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
-  'https://api.ebay.com/oauth/api_scope/sell.fulfillment',
 ]
 
 // Helper function to get current environment
@@ -63,18 +59,15 @@ export function getEbayConfig() {
   return isProduction ? EBAY_CONFIG.PRODUCTION : EBAY_CONFIG.SANDBOX
 }
 
-// Helper function to build OAuth URL
-export function buildOAuthUrl(state: string) {
-  const config = getEbayConfig()
-  const scopes = EBAY_SCOPES.join(' ')
-  
+// Helper function to build Auth'n'auth URL
+export function buildAuthUrl() {
+  // Auth'n'auth uses a different URL format
   const params = new URLSearchParams({
-    client_id: EBAY_CREDENTIALS.APP_ID,
-    response_type: 'code',
-    redirect_uri: config.REDIRECT_URI,
-    scope: scopes,
-    state: state,
+    SignIn: '',
+    runame: EBAY_CREDENTIALS.RU_NAME,
+    SessID: '', // Will be set by eBay
   })
   
-  return `${config.AUTH_URL}${EBAY_ENDPOINTS.OAUTH_AUTHORIZE}?${params.toString()}`
+  // Use the Auth'n'auth endpoint
+  return `https://signin.sandbox.ebay.com/ws/eBayISAPI.dll?${params.toString()}`
 }

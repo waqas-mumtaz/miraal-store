@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildAuthUrl } from '@/lib/ebay'
 import { verifyToken } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     // Verify user authentication
     const token = request.cookies.get('auth-token')?.value
@@ -15,25 +15,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Build Auth'n'auth URL
-    const authUrl = buildAuthUrl()
-    
-    // Debug: Log the generated URL
-    console.log('Generated Auth URL:', authUrl)
-    console.log('Environment variables:', {
-      EBAY_APP_ID: process.env.EBAY_APP_ID,
-      EBAY_RU_NAME: process.env.EBAY_RU_NAME
+    // Clear eBay credentials from database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        // Clear eBay tokens when you add these fields to your User model
+        // ebayAccessToken: null,
+        // ebayRefreshToken: null,
+        // ebayTokenExpiry: null,
+        updatedAt: new Date()
+      }
     })
-    
+
     return NextResponse.json({
-      authUrl,
-      message: 'Redirect user to this URL to authorize eBay access'
+      message: 'eBay account disconnected successfully'
     })
     
   } catch (error) {
-    console.error('eBay Auth error:', error)
+    console.error('eBay disconnect error:', error)
     return NextResponse.json(
-      { error: 'Failed to initiate eBay Auth' },
+      { error: 'Failed to disconnect eBay account' },
       { status: 500 }
     )
   }

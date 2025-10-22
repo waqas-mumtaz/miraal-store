@@ -40,8 +40,8 @@ export default function EbayIntegration({ onConnectionChange }: EbayIntegrationP
       const response = await fetch('/api/ebay/auth');
       if (response.ok) {
         const data = await response.json();
-        // Redirect to eBay OAuth
-        window.location.href = data.oauthUrl;
+        // Redirect to eBay Auth'n'auth
+        window.location.href = data.authUrl;
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to initiate eBay connection');
