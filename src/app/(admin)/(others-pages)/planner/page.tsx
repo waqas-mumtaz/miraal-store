@@ -31,7 +31,7 @@ export default function PlannerPage() {
             </p>
             <div className="flex space-x-3">
               <Link href="/planner/ebay">
-                <Button variant="secondary" className="w-full">
+                <Button variant="outline" className="w-full">
                   View eBay Plans
                 </Button>
               </Link>
@@ -61,7 +61,7 @@ export default function PlannerPage() {
             </p>
             <div className="flex space-x-3">
               <Link href="/planner/amazon">
-                <Button variant="secondary" className="w-full">
+                <Button variant="outline" className="w-full">
                   View Amazon Plans
                 </Button>
               </Link>
