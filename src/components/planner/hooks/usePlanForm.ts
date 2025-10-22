@@ -5,10 +5,12 @@ export const usePlanForm = () => {
   const [marketplace, setMarketplace] = useState<Marketplace>("ebay");
   const [formData, setFormData] = useState<PlanFormData>({
     productName: "",
+    ean: "",
     unitPrice: "",
     sellPrice: "",
     sourceLink: "",
-    ebayLink: "",
+    productLink: "",
+    soldItems: "",
     vat: "",
     ebayCommission: 15,
     advertisingPercentage: "",
@@ -23,7 +25,7 @@ export const usePlanForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const newValue = ["productName", "sourceLink", "ebayLink", "status", "fulfillmentType"].includes(name)
+    const newValue = ["productName", "ean", "sourceLink", "productLink", "status", "fulfillmentType"].includes(name)
       ? value
       : value === ""
       ? ""
@@ -43,6 +45,7 @@ export const usePlanForm = () => {
     marketplace,
     formData,
     setFormData,
+    setMarketplace,
     handleInputChange,
     handleMarketplaceChange,
     isNumericField,

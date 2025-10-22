@@ -22,6 +22,16 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
             placeholder="Enter product name" 
           />
         </div>
+        <div className="md:col-span-2">
+          <Label>EAN *</Label>
+          <Input 
+            type="text" 
+            name="ean" 
+            value={formData.ean} 
+            onChange={onChange} 
+            placeholder="Enter EAN code" 
+          />
+        </div>
         <div>
           <Label>Unit Price *</Label>
           <Input 
@@ -57,13 +67,24 @@ export const ProductInfoForm = ({ formData, onChange }: ProductInfoFormProps) =>
           />
         </div>
         <div>
-          <Label>eBay Link</Label>
+          <Label>Product Link</Label>
           <Input 
             type="url" 
-            name="ebayLink" 
-            value={formData.ebayLink} 
+            name="productLink" 
+            value={formData.productLink} 
             onChange={onChange} 
             placeholder="https://ebay.com/listing" 
+          />
+        </div>
+        <div>
+          <Label>Sold Items</Label>
+          <Input 
+            type="number" 
+            name="soldItems" 
+            value={formData.soldItems} 
+            onChange={onChange} 
+            placeholder="0" 
+            min="0"
           />
         </div>
       </div>

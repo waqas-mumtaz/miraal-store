@@ -53,10 +53,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       productName,
+      ean,
       unitPrice,
       sellPrice,
       sourceLink,
-      ebayLink,
+      productLink,
+      soldItems,
       vat,
       ebayCommission,
       advertisingPercentage,
@@ -85,9 +87,11 @@ export async function POST(request: NextRequest) {
       const newPlan = await tx.plan.create({
         data: {
           productName,
+          ean: ean || null,
           unitPrice: parseFloat(unitPrice),
           sellPrice: parseFloat(sellPrice),
           sourceLink,
+          soldItems: parseInt(soldItems || 0),
           shippingCharges: parseFloat(shippingCharges || 0),
           shippingCost: parseFloat(shippingCost || 0),
           status,
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
         await tx.ebayPlanDetails.create({
           data: {
             planId: newPlan.id,
-            ebayLink: ebayLink || null,
+            productLink: productLink || null,
             vat: parseFloat(vat || 0),
             ebayCommission: parseFloat(ebayCommission || 15),
             advertisingPercentage: parseFloat(advertisingPercentage || 0),

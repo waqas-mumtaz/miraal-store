@@ -95,7 +95,7 @@ export const CostsForm = ({ formData, profitBreakdown, marketplace, onChange }: 
                   { value: "FBM", label: "FBM (Fulfilled by Merchant)" }
                 ]}
                 placeholder="Select fulfillment type"
-                onChange={(value) => onChange({ target: { name: "fulfillmentType", value } } as any)}
+                onChange={(value) => onChange({ target: { name: "fulfillmentType", value } } as React.ChangeEvent<HTMLSelectElement>)}
                 defaultValue={formData.fulfillmentType}
               />
             </div>

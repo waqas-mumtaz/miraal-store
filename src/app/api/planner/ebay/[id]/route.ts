@@ -64,10 +64,12 @@ export async function PUT(
     const body = await request.json();
     const {
       productName,
+      ean,
       unitPrice,
       sellPrice,
       sourceLink,
-      ebayLink,
+      productLink,
+      soldItems,
       vat,
       ebayCommission,
       advertisingPercentage,
@@ -109,9 +111,11 @@ export async function PUT(
         where: { id },
         data: {
           productName,
+          ean: ean || null,
           unitPrice: parseFloat(unitPrice),
           sellPrice: parseFloat(sellPrice),
           sourceLink,
+          soldItems: parseInt(soldItems || 0),
           shippingCharges: parseFloat(shippingCharges || 0),
           shippingCost: parseFloat(shippingCost || 0),
           status,
@@ -125,14 +129,14 @@ export async function PUT(
         await tx.ebayPlanDetails.upsert({
           where: { planId: id },
           update: {
-            ebayLink: ebayLink || null,
+            productLink: productLink || null,
             vat: parseFloat(vat || 0),
             ebayCommission: parseFloat(ebayCommission || 15),
             advertisingPercentage: parseFloat(advertisingPercentage || 0),
           },
           create: {
             planId: id,
-            ebayLink: ebayLink || null,
+            productLink: productLink || null,
             vat: parseFloat(vat || 0),
             ebayCommission: parseFloat(ebayCommission || 15),
             advertisingPercentage: parseFloat(advertisingPercentage || 0),

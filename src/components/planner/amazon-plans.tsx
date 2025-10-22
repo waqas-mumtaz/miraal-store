@@ -7,9 +7,11 @@ import Button from "@/components/ui/button/Button";
 interface Plan {
   id: string;
   productName: string;
+  ean?: string;
   unitPrice: number;
   sellPrice: number;
   sourceLink: string;
+  soldItems: number;
   shippingCharges: number;
   shippingCost: number;
   status: string;
@@ -48,7 +50,7 @@ export default function AmazonPlans() {
 
       const data = await response.json();
       // Filter only Amazon plans
-      const amazonPlans = data.plans?.filter((plan: any) => plan.marketplace === 'amazon') || [];
+      const amazonPlans = data.plans?.filter((plan: { marketplace: string }) => plan.marketplace === 'amazon') || [];
       setPlans(amazonPlans);
       setIsLoading(false);
     } catch (error) {
@@ -199,6 +201,16 @@ export default function AmazonPlans() {
                       <div className="text-sm font-medium text-gray-900">
                         {plan.productName}
                       </div>
+                      {plan.ean && (
+                        <div className="text-xs text-gray-500">
+                          EAN: {plan.ean}
+                        </div>
+                      )}
+                      {plan.soldItems > 0 && (
+                        <div className="text-xs text-gray-500">
+                          Sold: {plan.soldItems} items
+                        </div>
+                      )}
                       {plan.sourceLink && (
                         <div className="text-xs text-gray-500">
                           <a

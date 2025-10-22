@@ -43,7 +43,7 @@ export default function AddPlan() {
   const handleMarketplaceFormChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     handleMarketplaceChange(e);
     // Recalculate profit when marketplace changes
-    updateProfit(formData, e.target.value as any);
+    updateProfit(formData, e.target.value as "ebay" | "amazon");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

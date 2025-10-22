@@ -7,15 +7,17 @@ import Button from "@/components/ui/button/Button";
 interface Plan {
   id: string;
   productName: string;
+  ean?: string;
   unitPrice: number;
   sellPrice: number;
   sourceLink: string;
+  soldItems: number;
   shippingCharges: number;
   shippingCost: number;
   status: string;
   profit: number;
   ebayDetails?: {
-    ebayLink?: string;
+    productLink?: string;
     vat: number;
     ebayCommission: number;
     advertisingPercentage: number;
@@ -196,6 +198,16 @@ export default function EbayPlans() {
                       <div className="text-sm font-medium text-gray-900">
                         {plan.productName}
                       </div>
+                      {plan.ean && (
+                        <div className="text-xs text-gray-500">
+                          EAN: {plan.ean}
+                        </div>
+                      )}
+                      {plan.soldItems > 0 && (
+                        <div className="text-xs text-gray-500">
+                          Sold: {plan.soldItems} items
+                        </div>
+                      )}
                       {plan.sourceLink && (
                         <div className="text-xs text-gray-500">
                           <a
@@ -208,15 +220,15 @@ export default function EbayPlans() {
                           </a>
                         </div>
                       )}
-                      {plan.ebayDetails?.ebayLink && (
+                      {plan.ebayDetails?.productLink && (
                         <div className="text-xs text-gray-500">
                           <a
-                            href={plan.ebayDetails.ebayLink}
+                            href={plan.ebayDetails.productLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800"
                           >
-                            eBay Link
+                            Product Link
                           </a>
                         </div>
                       )}

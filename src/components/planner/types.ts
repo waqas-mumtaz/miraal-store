@@ -1,9 +1,11 @@
 export interface PlanFormData {
   productName: string;
+  ean: string;
   unitPrice: string | number;
   sellPrice: string | number;
   sourceLink: string;
-  ebayLink: string;
+  productLink: string;
+  soldItems: string | number;
   vat: string | number;
   ebayCommission: number;
   advertisingPercentage: string | number;
@@ -39,4 +41,5 @@ export const NUMERIC_FIELDS = [
   "storageFees",
   "shippingCost",
   "unitPrice",
+  "soldItems",
 ] as const;
