@@ -29,6 +29,7 @@
     "apexcharts": "^4.3.0",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "^3.0.2",
+    "ebay-oauth-nodejs-client": "^1.2.2",
     "flatpickr": "^4.6.13",
     "jose": "^6.1.0",
     "next": "15.2.3",

@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
-import { buildOAuthUrl } from '@/lib/ebay'
+import { generateUserAuthUrl, getDebugInfo } from '@/lib/ebay-oauth'
 
 export async function GET() {
   try {
-    const oauthUrl = buildOAuthUrl('test-state-123')
+    const oauthUrl = generateUserAuthUrl('test-state-123')
+    const debugInfo = getDebugInfo()
     
     return NextResponse.json({
       oauthUrl,
+      debugInfo,
       environment: {
         EBAY_APP_ID: process.env.EBAY_APP_ID,
         EBAY_CERT_ID: process.env.EBAY_CERT_ID,
@@ -15,7 +17,7 @@ export async function GET() {
         EBAY_REDIRECT_URI: process.env.EBAY_REDIRECT_URI,
         NODE_ENV: process.env.NODE_ENV
       },
-      message: 'Debug information for eBay OAuth'
+      message: 'Debug information for eBay OAuth using official client'
     })
   } catch (error) {
     return NextResponse.json({

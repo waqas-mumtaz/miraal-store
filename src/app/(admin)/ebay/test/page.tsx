@@ -25,11 +25,24 @@ export default function EbayTestPage() {
       const response = await fetch('/api/ebay/auth');
       if (response.ok) {
         const data = await response.json();
-        // Redirect to eBay Auth
-        window.location.href = data.authUrl;
+        // Redirect to eBay OAuth
+        window.location.href = data.oauthUrl;
       }
     } catch (error) {
       console.error('Auth error:', error);
+    }
+  };
+
+  const testAppToken = async () => {
+    try {
+      const response = await fetch('/api/ebay/app-token');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Application token:', data);
+        alert('Application token retrieved! Check console for details.');
+      }
+    } catch (error) {
+      console.error('App token error:', error);
     }
   };
 
@@ -59,12 +72,17 @@ export default function EbayTestPage() {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Test eBay Authentication</h2>
-          <Button onClick={testAuth} className="bg-blue-600 hover:bg-blue-700">
-            Test eBay Auth Flow
-          </Button>
+          <div className="space-y-3">
+            <Button onClick={testAuth} className="bg-blue-600 hover:bg-blue-700 w-full">
+              Test eBay OAuth Flow
+            </Button>
+            <Button onClick={testAppToken} className="bg-green-600 hover:bg-green-700 w-full">
+              Test Application Token
+            </Button>
+          </div>
           <p className="text-sm text-gray-500 mt-2">
-            This will redirect you to eBay for authentication. After completing the auth flow, 
-            you should be redirected back to the eBay orders page.
+            <strong>OAuth Flow:</strong> Redirects you to eBay for user authentication.<br/>
+            <strong>Application Token:</strong> Gets app-level token for API calls.
           </p>
         </div>
 

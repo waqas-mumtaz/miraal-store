@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildOAuthUrl } from '@/lib/ebay'
+import { generateUserAuthUrl, getDebugInfo } from '@/lib/ebay-oauth'
 import { verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -18,15 +18,12 @@ export async function GET(request: NextRequest) {
     // Generate a random state for security
     const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     
-    // Build OAuth URL
-    const oauthUrl = buildOAuthUrl(state)
+    // Generate OAuth URL using official eBay client
+    const oauthUrl = generateUserAuthUrl(state)
     
-    // Debug: Log the generated URL
+    // Debug: Log the generated URL and config
     console.log('Generated OAuth URL:', oauthUrl)
-    console.log('Environment variables:', {
-      EBAY_APP_ID: process.env.EBAY_APP_ID,
-      EBAY_REDIRECT_URI: process.env.EBAY_REDIRECT_URI
-    })
+    console.log('Debug info:', getDebugInfo())
     
     return NextResponse.json({
       oauthUrl,

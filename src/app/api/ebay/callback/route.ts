@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { exchangeCodeForToken } from '@/lib/ebay-oauth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,13 +36,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Store eBay session in database
+    // Exchange authorization code for access token using official eBay client
+    const tokenData = await exchangeCodeForToken(code)
+    
+    console.log('eBay token exchange successful:', {
+      accessToken: tokenData.access_token ? 'Present' : 'Missing',
+      refreshToken: tokenData.refresh_token ? 'Present' : 'Missing',
+      expiresIn: tokenData.expires_in
+    })
+
+    // Store eBay tokens in database
     await prisma.user.update({
       where: { id: user.id },
       data: {
         // You might want to add these fields to your User model
-        // ebaySessionId: SessID,
-        // ebayRuName: runame,
+        // ebayAccessToken: tokenData.access_token,
+        // ebayRefreshToken: tokenData.refresh_token,
+        // ebayTokenExpiry: new Date(Date.now() + (tokenData.expires_in * 1000)),
         updatedAt: new Date()
       }
     })
