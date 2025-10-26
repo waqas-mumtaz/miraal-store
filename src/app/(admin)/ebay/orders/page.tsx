@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Button from '@/components/ui/button/Button';
-import EbayIntegration from '@/components/ebay/EbayIntegration';
 
 interface EbayOrder {
   orderId?: string;
@@ -77,6 +76,19 @@ export default function EbayOrdersPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [fulfillmentFilter, setFulfillmentFilter] = useState('NOT_STARTED');
 
+  const checkEbayConnection = useCallback(async () => {
+    try {
+      const response = await fetch('/api/ebay/status');
+      if (response.ok) {
+        const data = await response.json();
+        setIsConnected(data.connected);
+      }
+    } catch (error) {
+      console.error('Error checking eBay connection:', error);
+      setIsConnected(false);
+    }
+  }, []);
+
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError('');
@@ -107,6 +119,10 @@ export default function EbayOrdersPage() {
       setIsLoading(false);
     }
   }, [fulfillmentFilter]);
+
+  useEffect(() => {
+    checkEbayConnection();
+  }, [checkEbayConnection]);
 
   useEffect(() => {
     if (isConnected) {
@@ -143,8 +159,26 @@ export default function EbayOrdersPage() {
         </div>
       </div>
 
-      {/* eBay Integration */}
-      <EbayIntegration onConnectionChange={setIsConnected} />
+      {/* Connection Status */}
+      {!isConnected && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <p className="text-yellow-800">eBay account not connected</p>
+            </div>
+            <Button
+              onClick={() => window.location.href = '/ebay/settings'}
+              variant="outline"
+              className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+            >
+              Go to Settings
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (
