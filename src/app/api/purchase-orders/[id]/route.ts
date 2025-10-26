@@ -26,6 +26,53 @@ async function updatePackagingStock(items: any[]) {
   }
 }
 
+// Function to create expenses from purchase order when received
+async function createExpensesFromPO(purchaseOrder: any, userId: string) {
+  try {
+    for (const item of purchaseOrder.items) {
+      // Generate unique expense ID
+      const expenseId = `EXP-${purchaseOrder.poNumber}-${item.id.slice(-4)}`;
+      
+      // Check if expense already exists
+      const existingExpense = await prisma.expense.findFirst({
+        where: {
+          expense_id: expenseId,
+          userId: userId,
+        },
+      });
+
+      if (existingExpense) {
+        console.log(`Expense ${expenseId} already exists, skipping...`);
+        continue;
+      }
+
+      // Create expense entry
+      await prisma.expense.create({
+        data: {
+          expense_id: expenseId,
+          invoice_id: purchaseOrder.poNumber,
+          item_name: item.packagingItem.name,
+          category: 'Packaging Materials',
+          quantity: item.quantity,
+          cost: item.unitCost.toString(),
+          unit_price: item.unitCost.toString(),
+          total_cost: item.totalCost.toString(),
+          date: new Date(), // Use current date as expense date
+          comment: `Auto-generated from PO ${purchaseOrder.poNumber} - ${item.packagingItem.name}`,
+          userId: userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log(`Created expense ${expenseId} for ${item.packagingItem.name}: €${item.totalCost}`);
+    }
+  } catch (error) {
+    console.error('Error creating expenses from PO:', error);
+    throw error;
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -145,9 +192,10 @@ export async function PUT(
       },
     });
 
-    // If status is RECEIVED, update packaging item stock levels
+    // If status is RECEIVED, update packaging item stock levels and create expenses
     if (status === 'RECEIVED') {
       await updatePackagingStock(updatedPO.items);
+      await createExpensesFromPO(updatedPO, user.id);
     }
 
     return NextResponse.json({

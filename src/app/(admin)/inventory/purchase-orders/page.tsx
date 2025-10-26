@@ -139,7 +139,7 @@ export default function PurchaseOrdersPage() {
         
         // Show success message with specific actions for RECEIVED status
         if (newStatus === 'RECEIVED') {
-          setSuccessMessage(`✅ Purchase Order ${selectedPO.poNumber} marked as RECEIVED! Stock levels have been automatically updated.`);
+          setSuccessMessage(`✅ Purchase Order ${selectedPO.poNumber} marked as RECEIVED! Stock levels updated and expenses created automatically.`);
         } else {
           setSuccessMessage(`✅ Purchase Order ${selectedPO.poNumber} status updated to ${newStatus}.`);
         }
@@ -547,6 +547,7 @@ export default function PurchaseOrdersPage() {
                         <p className="font-medium">When marked as RECEIVED:</p>
                         <ul className="mt-1 list-disc list-inside space-y-1">
                           <li>Stock levels will be automatically updated</li>
+                          <li>Expense entries will be created automatically</li>
                           <li>Delivery date will be set to today</li>
                           <li>Packaging items will be marked as ACTIVE</li>
                           <li>You can now use these items for orders</li>
