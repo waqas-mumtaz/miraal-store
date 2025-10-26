@@ -145,6 +145,15 @@ export default function PackagingPage() {
     }
   };
 
+  const getStockStatus = (stock: number, status: string) => {
+    if (status === 'out_of_stock' || stock === 0) {
+      return { status: 'out_of_stock', color: 'text-red-600', bg: 'bg-red-100' };
+    } else if (stock < 50) {
+      return { status: 'low_stock', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+    }
+    return { status: 'in_stock', color: 'text-green-600', bg: 'bg-green-100' };
+  };
+
   const formatDimensions = (dimensions: { length: number; width: number; height: number }) => {
     return `${dimensions.length}" × ${dimensions.width}" × ${dimensions.height}"`;
   };
@@ -160,6 +169,12 @@ export default function PackagingPage() {
         <div className="flex space-x-3">
           <Button variant="outline">
             Import Packaging
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/inventory/packaging/replenish')}
+          >
+            Replenish Stock
           </Button>
           <Button
             onClick={() => router.push('/inventory/packaging/add')}
@@ -264,6 +279,9 @@ export default function PackagingPage() {
                     Stock
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stock Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -301,10 +319,28 @@ export default function PackagingPage() {
                       {getStockBadge(item.stock, item.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      {(() => {
+                        const stockStatus = getStockStatus(item.stock, item.status);
+                        return (
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.bg} ${stockStatus.color}`}>
+                            {stockStatus.status.replace('_', ' ').toUpperCase()}
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(item.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
+                        {(item.stock === 0 || item.stock < 50) && (
+                          <button 
+                            onClick={() => router.push('/inventory/packaging/replenish')}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            Replenish
+                          </button>
+                        )}
                         <button className="text-blue-600 hover:text-blue-900">
                           Edit
                         </button>
