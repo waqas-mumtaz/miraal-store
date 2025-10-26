@@ -8,13 +8,13 @@ interface PackagingFormData {
   name: string;
   type: 'box' | 'envelope' | 'bag' | 'tube' | 'other';
   dimensions: {
-    length: number;
-    width: number;
-    height: number;
+    length: number | string;
+    width: number | string;
+    height: number | string;
   };
-  weight: number;
-  cost: number;
-  stock: number;
+  weight: number | string;
+  cost: number | string;
+  stock: number | string;
   status: 'active' | 'inactive';
   description: string;
 }
@@ -28,13 +28,13 @@ export default function AddPackagingPage() {
     name: '',
     type: 'box',
     dimensions: {
-      length: 0,
-      width: 0,
-      height: 0
+      length: '' as any,
+      width: '' as any,
+      height: '' as any
     },
-    weight: 0,
-    cost: 0,
-    stock: 0,
+    weight: '' as any,
+    cost: '' as any,
+    stock: '' as any,
     status: 'active',
     description: ''
   });
@@ -48,14 +48,14 @@ export default function AddPackagingPage() {
         ...prev,
         dimensions: {
           ...prev.dimensions,
-          [dimensionField]: parseFloat(value) || 0
+          [dimensionField]: value === '' ? '' : parseFloat(value) || 0
         }
       }));
     } else {
       setFormData(prev => ({
         ...prev,
         [name]: name === 'weight' || name === 'cost' || name === 'stock' 
-          ? parseFloat(value) || 0 
+          ? (value === '' ? '' : parseFloat(value) || 0)
           : value
       }));
     }
@@ -68,27 +68,34 @@ export default function AddPackagingPage() {
       newErrors.name = 'Name is required';
     }
 
-    if (formData.dimensions.length <= 0) {
+    const length = typeof formData.dimensions.length === 'string' ? parseFloat(formData.dimensions.length) : formData.dimensions.length;
+    const width = typeof formData.dimensions.width === 'string' ? parseFloat(formData.dimensions.width) : formData.dimensions.width;
+    const height = typeof formData.dimensions.height === 'string' ? parseFloat(formData.dimensions.height) : formData.dimensions.height;
+    const weight = typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight;
+    const cost = typeof formData.cost === 'string' ? parseFloat(formData.cost) : formData.cost;
+    const stock = typeof formData.stock === 'string' ? parseFloat(formData.stock) : formData.stock;
+
+    if (isNaN(length) || length <= 0) {
       newErrors['dimensions.length'] = 'Length must be greater than 0';
     }
 
-    if (formData.dimensions.width <= 0) {
+    if (isNaN(width) || width <= 0) {
       newErrors['dimensions.width'] = 'Width must be greater than 0';
     }
 
-    if (formData.dimensions.height < 0) {
+    if (isNaN(height) || height < 0) {
       newErrors['dimensions.height'] = 'Height cannot be negative';
     }
 
-    if (formData.weight < 0) {
+    if (isNaN(weight) || weight < 0) {
       newErrors.weight = 'Weight cannot be negative';
     }
 
-    if (formData.cost < 0) {
+    if (isNaN(cost) || cost < 0) {
       newErrors.cost = 'Cost cannot be negative';
     }
 
-    if (formData.stock < 0) {
+    if (isNaN(stock) || stock < 0) {
       newErrors.stock = 'Stock cannot be negative';
     }
 
@@ -111,7 +118,20 @@ export default function AddPackagingPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          type: formData.type.toUpperCase(),
+          dimensions: {
+            length: typeof formData.dimensions.length === 'string' ? parseFloat(formData.dimensions.length) : formData.dimensions.length,
+            width: typeof formData.dimensions.width === 'string' ? parseFloat(formData.dimensions.width) : formData.dimensions.width,
+            height: typeof formData.dimensions.height === 'string' ? parseFloat(formData.dimensions.height) : formData.dimensions.height,
+          },
+          weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
+          cost: typeof formData.cost === 'string' ? parseFloat(formData.cost) : formData.cost,
+          stock: typeof formData.stock === 'string' ? parseFloat(formData.stock) : formData.stock,
+          status: formData.status.toUpperCase(),
+          description: formData.description
+        }),
       });
 
       if (response.ok) {

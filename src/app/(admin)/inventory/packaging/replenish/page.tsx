@@ -311,7 +311,7 @@ export default function ReplenishPackagingPage() {
                         <input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateReplenishmentItem(item.packagingId, 'quantity', parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateReplenishmentItem(item.packagingId, 'quantity', e.target.value === '' ? 0 : parseInt(e.target.value) || 0)}
                           min="1"
                           className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
@@ -324,7 +324,7 @@ export default function ReplenishPackagingPage() {
                         <input
                           type="number"
                           value={item.unitCost}
-                          onChange={(e) => updateReplenishmentItem(item.packagingId, 'unitCost', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateReplenishmentItem(item.packagingId, 'unitCost', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
                           className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
