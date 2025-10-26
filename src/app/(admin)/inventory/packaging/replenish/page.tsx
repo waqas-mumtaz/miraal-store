@@ -158,19 +158,33 @@ export default function ReplenishPackagingPage() {
     setIsLoading(true);
     
     try {
-      // Simulate API call to create replenishment order
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Generate Purchase Order
+      const poNumber = `PO-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      const orderDate = new Date().toISOString();
       
-      console.log('Replenishment order:', {
+      const purchaseOrder = {
+        poNumber,
+        orderDate,
         items: selectedItems,
         totalCost,
-        orderDate: new Date().toISOString()
-      });
+        status: 'pending',
+        supplier: selectedItems[0]?.supplier || 'Multiple Suppliers',
+        notes: selectedItems.map(item => `${item.name}: ${item.notes}`).filter(note => note).join('; ')
+      };
+      
+      // Simulate API call to create purchase order
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      console.log('Purchase Order Created:', purchaseOrder);
+      
+      // Show success message (in real app, this would be a toast/notification)
+      alert(`Purchase Order ${poNumber} created successfully!\n\nTotal Cost: €${totalCost.toFixed(2)}\nStatus: Pending\n\nThis order will be sent to suppliers for fulfillment.`);
       
       // Redirect back to packaging list
       router.push('/inventory/packaging');
     } catch (error) {
-      console.error('Error creating replenishment order:', error);
+      console.error('Error creating purchase order:', error);
+      alert('Error creating purchase order. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -196,7 +210,7 @@ export default function ReplenishPackagingPage() {
               onClick={handleSubmit}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Order...' : `Create Order (€${totalCost.toFixed(2)})`}
+              {isLoading ? 'Creating Purchase Order...' : `Create Purchase Order (€${totalCost.toFixed(2)})`}
             </Button>
           )}
         </div>
@@ -338,9 +352,20 @@ export default function ReplenishPackagingPage() {
               </div>
               
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-semibold text-gray-900">Total Cost:</span>
                   <span className="text-xl font-bold text-gray-900">€{totalCost.toFixed(2)}</span>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">What happens when you create this order:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Purchase Order (PO) will be generated with unique number</li>
+                    <li>• Order will be sent to suppliers for confirmation</li>
+                    <li>• You'll receive tracking updates as items are shipped</li>
+                    <li>• Stock levels will be updated when items are received</li>
+                    <li>• Order status can be tracked in your purchase history</li>
+                  </ul>
                 </div>
               </div>
             </div>
