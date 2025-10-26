@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/button/Button';
 
 interface PackagingItem {
@@ -21,6 +22,7 @@ interface PackagingItem {
 }
 
 export default function PackagingPage() {
+  const router = useRouter();
   const [packagingItems, setPackagingItems] = useState<PackagingItem[]>([
     {
       id: '1',
@@ -159,7 +161,9 @@ export default function PackagingPage() {
           <Button variant="outline">
             Import Packaging
           </Button>
-          <Button>
+          <Button
+            onClick={() => router.push('/inventory/packaging/add')}
+          >
             Add Packaging Item
           </Button>
         </div>
