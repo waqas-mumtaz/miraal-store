@@ -319,7 +319,7 @@ export default function AddPackagingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cost per Unit ($)
+                  Cost per Unit (€)
                 </label>
                 <input
                   type="number"

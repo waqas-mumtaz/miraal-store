@@ -196,7 +196,7 @@ export default function ReplenishPackagingPage() {
               onClick={handleSubmit}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Order...' : `Create Order ($${totalCost.toFixed(2)})`}
+              {isLoading ? 'Creating Order...' : `Create Order (€${totalCost.toFixed(2)})`}
             </Button>
           )}
         </div>
@@ -238,7 +238,7 @@ export default function ReplenishPackagingPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">${item.cost.toFixed(2)}</div>
+                        <div className="text-sm font-medium text-gray-900">€{item.cost.toFixed(2)}</div>
                         <div className="text-xs text-gray-500">per unit</div>
                       </div>
                     </div>
@@ -287,7 +287,7 @@ export default function ReplenishPackagingPage() {
                       
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Unit Cost
+                          Unit Cost (€)
                         </label>
                         <input
                           type="number"
@@ -316,7 +316,7 @@ export default function ReplenishPackagingPage() {
                           Total Cost
                         </label>
                         <div className="px-2 py-1 text-sm font-medium text-gray-900">
-                          ${item.totalCost.toFixed(2)}
+                          €{item.totalCost.toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -340,7 +340,7 @@ export default function ReplenishPackagingPage() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-900">Total Cost:</span>
-                  <span className="text-xl font-bold text-gray-900">${totalCost.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-gray-900">€{totalCost.toFixed(2)}</span>
                 </div>
               </div>
             </div>

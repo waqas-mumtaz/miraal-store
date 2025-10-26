@@ -312,7 +312,7 @@ export default function PackagingPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        ${item.cost.toFixed(2)}
+                        €{item.cost.toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -437,7 +437,7 @@ export default function PackagingPage() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Value</p>
               <p className="text-2xl font-semibold text-gray-900">
-                ${packagingItems.reduce((sum, item) => sum + (item.cost * item.stock), 0).toFixed(2)}
+                €{packagingItems.reduce((sum, item) => sum + (item.cost * item.stock), 0).toFixed(2)}
               </p>
             </div>
           </div>
