@@ -92,7 +92,13 @@ export default function EbayOrdersPage() {
         setOrders(data.orders || []);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to fetch orders');
+        const errorMessage = errorData.error || 'Failed to fetch orders';
+        setError(errorMessage);
+        
+        // If it's a refresh token expiration, mark as disconnected
+        if (errorMessage.includes('refresh token has expired') || errorMessage.includes('Please reconnect')) {
+          setIsConnected(false);
+        }
       }
     } catch (error) {
       setError('Failed to fetch orders');
@@ -143,7 +149,22 @@ export default function EbayOrdersPage() {
       {/* Error Display */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-red-600">{error}</p>
+            {(error.includes('refresh token has expired') || error.includes('Please reconnect')) && (
+              <Button
+                onClick={() => {
+                  setError('');
+                  // Trigger eBay reconnection
+                  window.location.href = '/api/ebay/auth';
+                }}
+                variant="outline"
+                className="ml-4"
+              >
+                Reconnect to eBay
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

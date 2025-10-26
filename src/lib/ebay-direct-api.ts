@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma';
+import { refreshUserToken } from './ebay-oauth';
 
 // eBay API Configuration
 const EBAY_CONFIG = {
@@ -24,20 +25,79 @@ export class EbayDirectApi {
   private baseUrl: string
   private authToken: string
   private refreshToken?: string
+  private tokenExpiry: Date | null
+  private userId: string
 
-  constructor(authToken: string, refreshToken?: string) {
+  constructor(userId: string, authToken: string, refreshToken?: string, tokenExpiry?: Date | null) {
     const config = getEbayConfig()
     this.baseUrl = config.baseUrl
     this.authToken = authToken
     this.refreshToken = refreshToken
+    this.tokenExpiry = tokenExpiry || null
+    this.userId = userId
+  }
+
+  // Ensure token is valid and refresh if needed
+  private async ensureTokenValid(): Promise<string> {
+    if (!this.authToken) {
+      throw new Error('No eBay access token available.');
+    }
+
+    if (this.tokenExpiry && new Date() >= this.tokenExpiry) {
+      console.log('eBay access token expired, attempting to refresh...');
+      if (!this.refreshToken) {
+        throw new Error('No eBay refresh token available to renew access token.');
+      }
+
+      try {
+        const newTokens = await refreshUserToken(this.refreshToken);
+        this.authToken = newTokens.access_token;
+        this.refreshToken = newTokens.refresh_token || this.refreshToken; // Refresh token might not change
+        this.tokenExpiry = new Date(Date.now() + (newTokens.expires_in * 1000));
+
+        // Update tokens in database
+        await prisma.user.update({
+          where: { id: this.userId },
+          data: {
+            ebayAccessToken: this.authToken,
+            ebayRefreshToken: this.refreshToken,
+            ebayTokenExpiry: this.tokenExpiry,
+            updatedAt: new Date(),
+          },
+        });
+        console.log('eBay access token refreshed and updated in DB.');
+      } catch (error) {
+        console.error('Failed to refresh eBay access token:', error);
+        
+        // Check if it's a refresh token expiration error
+        if (error instanceof Error && (error.message.includes('invalid_grant') || error.message.includes('expired'))) {
+          // Clear the eBay connection in database
+          await prisma.user.update({
+            where: { id: this.userId },
+            data: {
+              ebayConnected: false,
+              ebayAccessToken: null,
+              ebayRefreshToken: null,
+              ebayTokenExpiry: null,
+              updatedAt: new Date(),
+            },
+          });
+          throw new Error('eBay refresh token has expired. Please reconnect your eBay account.');
+        }
+        
+        throw new Error(`Failed to refresh eBay access token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+    return this.authToken;
   }
 
   // Make authenticated request to eBay API
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
+    const accessToken = await this.ensureTokenValid();
     const url = `${this.baseUrl}${endpoint}`
     
     const headers = {
-      'Authorization': `Bearer ${this.authToken}`,
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       'X-EBAY-SOA-OPERATION-NAME': 'getOrders',
       ...options.headers,
@@ -76,9 +136,8 @@ export class EbayDirectApi {
   // Test connection
   async testConnection() {
     try {
-      if (!this.authToken) {
-        return { success: false, error: 'No auth token available' }
-      }
+      // This will automatically check and refresh token if needed
+      await this.ensureTokenValid();
       
       // Test with a simple API call
       const result = await this.makeRequest('/sell/fulfillment/v1/order?limit=1')
@@ -206,7 +265,7 @@ export async function createEbayDirectApi(userId: string): Promise<EbayDirectApi
       throw new Error('User not connected to eBay or tokens not found')
     }
 
-    return new EbayDirectApi(user.ebayAccessToken, user.ebayRefreshToken || undefined)
+    return new EbayDirectApi(userId, user.ebayAccessToken, user.ebayRefreshToken || undefined, user.ebayTokenExpiry)
   } catch (error) {
     console.error('Error creating eBay direct API client:', error)
     throw error
