@@ -177,8 +177,24 @@ export default function ReplenishPackagingPage() {
       
       console.log('Purchase Order Created:', purchaseOrder);
       
-      // Show success message (in real app, this would be a toast/notification)
-      alert(`Purchase Order ${poNumber} created successfully!\n\nTotal Cost: €${totalCost.toFixed(2)}\nStatus: Pending\n\nThis order will be sent to suppliers for fulfillment.`);
+      // Create expense entries for each item (when order is confirmed)
+      const expenseEntries = selectedItems.map(item => ({
+        expense_id: `EXP-${poNumber}-${item.packagingId}`,
+        item_name: item.name,
+        category: 'Packaging Materials',
+        quantity: item.quantity,
+        cost: item.totalCost,
+        unit_price: item.unitCost,
+        date: orderDate,
+        comment: `Purchase Order: ${poNumber} - ${item.supplier}`,
+        po_number: poNumber,
+        supplier: item.supplier
+      }));
+      
+      console.log('Expense Entries to be created:', expenseEntries);
+      
+      // Show success message with expense information
+      alert(`Purchase Order ${poNumber} created successfully!\n\nTotal Cost: €${totalCost.toFixed(2)}\nStatus: Pending\n\n📊 Expense Tracking:\n• ${expenseEntries.length} expense entries will be created\n• Category: Packaging Materials\n• Total Budget Impact: €${totalCost.toFixed(2)}\n\nThis order will be sent to suppliers for fulfillment.`);
       
       // Redirect back to packaging list
       router.push('/inventory/packaging');
@@ -362,9 +378,21 @@ export default function ReplenishPackagingPage() {
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Purchase Order (PO) will be generated with unique number</li>
                     <li>• Order will be sent to suppliers for confirmation</li>
+                    <li>• Expense entries will be created for budget tracking</li>
                     <li>• You'll receive tracking updates as items are shipped</li>
                     <li>• Stock levels will be updated when items are received</li>
                     <li>• Order status can be tracked in your purchase history</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-3">
+                  <h4 className="text-sm font-medium text-green-900 mb-2">💰 Expense Integration:</h4>
+                  <ul className="text-sm text-green-800 space-y-1">
+                    <li>• Category: <strong>Packaging Materials</strong></li>
+                    <li>• Each item becomes a separate expense entry</li>
+                    <li>• Linked to Purchase Order for audit trail</li>
+                    <li>• Automatically categorized for budget reporting</li>
+                    <li>• Visible in Expenses → Expense List</li>
                   </ul>
                 </div>
               </div>
