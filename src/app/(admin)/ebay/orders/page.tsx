@@ -1,32 +1,73 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Button from '@/components/ui/button/Button';
 import EbayIntegration from '@/components/ebay/EbayIntegration';
 
 interface EbayOrder {
-  orderId: string;
-  buyerId: string;
-  buyerEmail: string;
-  totalAmount: number;
-  currency: string;
-  status: string;
-  lineItems: Array<{
-    itemId: string;
-    title: string;
-    quantity: number;
-    price: number;
-    sku?: string;
-  }>;
-  shippingAddress: {
-    name: string;
-    addressLine1: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
+  orderId?: string;
+  legacyOrderId?: string;
+  creationDate?: string;
+  lastModifiedDate?: string;
+  orderFulfillmentStatus?: string;
+  orderPaymentStatus?: string;
+  sellerId?: string;
+  buyer?: {
+    username?: string;
+    email?: string;
+    taxAddress?: {
+      city?: string;
+      stateOrProvince?: string;
+      postalCode?: string;
+      countryCode?: string;
+    };
+    buyerRegistrationAddress?: {
+      fullName?: string;
+      contactAddress?: {
+        addressLine1?: string;
+        city?: string;
+        stateOrProvince?: string;
+        postalCode?: string;
+        countryCode?: string;
+      };
+      primaryPhone?: {
+        phoneNumber?: string;
+      };
+      email?: string;
+    };
   };
-  createdAt: string;
+  pricingSummary?: {
+    priceSubtotal?: {
+      value?: string;
+      currency?: string;
+    };
+    deliveryCost?: {
+      value?: string;
+      currency?: string;
+    };
+    total?: {
+      value?: string;
+      currency?: string;
+    };
+  };
+  lineItems?: Array<{
+    lineItemId?: string;
+    legacyItemId?: string;
+    title?: string;
+    lineItemCost?: {
+      value?: string;
+      currency?: string;
+    };
+    quantity?: number;
+    soldFormat?: string;
+    listingMarketplaceId?: string;
+    purchaseMarketplaceId?: string;
+    lineItemFulfillmentStatus?: string;
+    total?: {
+      value?: string;
+      currency?: string;
+    };
+  }>;
 }
 
 export default function EbayOrdersPage() {
@@ -34,15 +75,20 @@ export default function EbayOrdersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [fulfillmentFilter, setFulfillmentFilter] = useState('NOT_STARTED');
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/ebay/orders');
+      const url = fulfillmentFilter 
+        ? `/api/ebay/orders?fulfillmentStatus=${fulfillmentFilter}`
+        : '/api/ebay/orders';
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('eBay orders data:', data);
         setOrders(data.orders || []);
       } else {
         const errorData = await response.json();
@@ -54,13 +100,13 @@ export default function EbayOrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fulfillmentFilter]);
 
   useEffect(() => {
     if (isConnected) {
       fetchOrders();
     }
-  }, [isConnected]);
+  }, [isConnected, fetchOrders]);
 
   return (
     <div className="space-y-6">
@@ -71,6 +117,16 @@ export default function EbayOrdersPage() {
           <p className="text-gray-600 mt-2">Manage your eBay orders and fulfillment</p>
         </div>
         <div className="flex space-x-3">
+          <select
+            value={fulfillmentFilter}
+            onChange={(e) => setFulfillmentFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Orders</option>
+            <option value="NOT_STARTED">Not Yet Shipped</option>
+            <option value="IN_PROGRESS">In Progress Only</option>
+            <option value="FULFILLED">Fulfilled</option>
+          </select>
           <Button
             onClick={fetchOrders}
             disabled={!isConnected || isLoading}
@@ -129,39 +185,41 @@ export default function EbayOrdersPage() {
                     <tr key={order.orderId} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {order.orderId}
+                          {order.orderId || 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{order.buyerId}</div>
-                        <div className="text-sm text-gray-500">{order.buyerEmail}</div>
+                        <div className="text-sm text-gray-900">{order.buyer?.username || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">{order.buyer?.email || order.buyer?.buyerRegistrationAddress?.email || 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {order.lineItems.length} item(s)
+                          {order.lineItems ? order.lineItems.length : 0} item(s)
                         </div>
                         <div className="text-sm text-gray-500">
-                          {order.lineItems.map(item => item.title).join(', ')}
+                          {order.lineItems ? order.lineItems.map(item => item.title || 'Untitled').join(', ') : 'No items'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {order.currency} {order.totalAmount.toFixed(2)}
+                          {order.pricingSummary?.total?.currency || 'USD'} {order.pricingSummary?.total?.value || '0.00'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          order.status === 'FULFILLED' 
+                          order.orderFulfillmentStatus === 'FULFILLED' 
                             ? 'bg-green-100 text-green-800'
-                            : order.status === 'PENDING'
+                            : order.orderFulfillmentStatus === 'IN_PROGRESS'
                             ? 'bg-yellow-100 text-yellow-800'
+                            : order.orderFulfillmentStatus === 'NOT_STARTED'
+                            ? 'bg-red-100 text-red-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {order.status}
+                          {order.orderFulfillmentStatus || 'UNKNOWN'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {order.creationDate ? new Date(order.creationDate).toLocaleDateString() : 'N/A'}
                       </td>
                     </tr>
                   ))}

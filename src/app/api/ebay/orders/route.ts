@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import { EbayOrdersService } from '@/lib/ebay-orders'
+import { createEbayDirectApi } from '@/lib/ebay-direct-api'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,39 +15,58 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // For now, we'll use a mock access token since we haven't implemented token storage yet
-    // In production, you'd get this from the database
-    const mockAccessToken = 'mock-access-token'
-    const ordersService = new EbayOrdersService(mockAccessToken)
-
     // Get query parameters
     const { searchParams } = new URL(request.url)
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
+    const orderStatus = searchParams.get('status') || undefined
+    const fulfillmentStatus = searchParams.get('fulfillmentStatus') || undefined
     const orderId = searchParams.get('orderId')
 
-    let orders
+    // Create eBay direct API client
+    const ebayApi = await createEbayDirectApi(user.id)
+
+    // Test connection first
+    const connectionTest = await ebayApi.testConnection()
+    if (!connectionTest.success) {
+      return NextResponse.json({ 
+        error: 'eBay connection failed',
+        message: connectionTest.error
+      }, { status: 400 })
+    }
 
     if (orderId) {
       // Get specific order
-      const order = await ordersService.getOrder(orderId)
-      return NextResponse.json({ order })
-    } else if (startDate && endDate) {
-      // Get orders by date range
-      orders = await ordersService.getOrdersByDateRange(startDate, endDate)
+      const order = await ebayApi.getOrder(orderId)
+      const lineItems = await ebayApi.getOrderLineItems(orderId)
+      
+      return NextResponse.json({
+        order: {
+          ...order,
+          lineItems
+        },
+        message: 'eBay order retrieved successfully'
+      })
     } else {
-      // Get all orders
-      orders = await ordersService.getOrders()
-    }
+      // Fetch orders from eBay
+      const orders = await ebayApi.getOrders({
+        limit,
+        offset,
+        orderStatus,
+        fulfillmentStatus
+      })
 
-    return NextResponse.json({
-      orders,
-      count: orders.length,
-      message: 'Orders fetched successfully'
-    })
+      return NextResponse.json({
+        orders: orders.orders || [],
+        total: orders.total || 0,
+        limit,
+        offset,
+        message: 'eBay orders retrieved successfully'
+      })
+    }
     
   } catch (error) {
-    console.error('eBay orders fetch error:', error)
+    console.error('eBay orders error:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch eBay orders',

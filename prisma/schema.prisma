@@ -24,6 +24,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // eBay Integration fields
+  ebayAccessToken        String?
+  ebayRefreshToken       String?
+  ebayTokenExpiry        DateTime?
+  ebayConnected          Boolean  @default(false)
+
   // Relations
   invoices Invoice[]
   expenses Expense[]

@@ -15,8 +15,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Generate a random state for security
-    const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    // Generate a state that includes user ID for session persistence
+    const randomPart = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const state = `${user.id}:${randomPart}`
     
     // Generate OAuth URL using official eBay client
     const oauthUrl = generateUserAuthUrl(state)

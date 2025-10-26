@@ -25,44 +25,112 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Verify user authentication
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    // Verify user authentication - try multiple methods
+    let user = null
+    let token = request.cookies.get('auth-token')?.value
+    
+    // Try to get token from cookies first
+    if (token) {
+      try {
+        user = await verifyToken(token)
+      } catch (error) {
+        console.log('Token verification failed:', error)
+      }
     }
-
-    const user = await verifyToken(token)
+    
+    // If no user found, try to get from Authorization header
     if (!user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      const authHeader = request.headers.get('Authorization')
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7)
+        try {
+          user = await verifyToken(token)
+        } catch (error) {
+          console.log('Authorization header token verification failed:', error)
+        }
+      }
+    }
+    
+    // If still no user, try to get user from state parameter (fallback for session loss)
+    if (!user && state) {
+      try {
+        const userId = state.split(':')[0] // Extract user ID from state
+        if (userId) {
+          user = await prisma.user.findUnique({
+            where: { id: userId }
+          })
+          console.log('Retrieved user from state parameter:', user ? 'Found' : 'Not found')
+        }
+      } catch (error) {
+        console.log('Error retrieving user from state:', error)
+      }
+    }
+    
+    // If still no user, redirect to login with a message
+    if (!user) {
+      console.log('No valid authentication found, redirecting to login')
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : process.env.NODE_ENV === 'production' 
+          ? 'https://miraal-store.vercel.app' 
+          : 'https://www.localhost:3001'
+      
+      return NextResponse.redirect(new URL('/signin?message=Please login to connect eBay', baseUrl))
     }
 
     // Exchange authorization code for access token using official eBay client
-    const tokenData = await exchangeCodeForToken(code)
-    
-    console.log('eBay token exchange successful:', {
-      accessToken: tokenData.access_token ? 'Present' : 'Missing',
-      refreshToken: tokenData.refresh_token ? 'Present' : 'Missing',
-      expiresIn: tokenData.expires_in
-    })
+    let tokenData, parsedTokenData
+    try {
+      tokenData = await exchangeCodeForToken(code)
+      console.log('Raw token data received:', typeof tokenData, tokenData ? 'Present' : 'Missing')
+      
+      // Parse the token data if it's a JSON string
+      parsedTokenData = tokenData
+      if (typeof tokenData === 'string') {
+        try {
+          parsedTokenData = JSON.parse(tokenData)
+        } catch (parseError) {
+          console.error('Error parsing token data:', parseError)
+          throw new Error(`Failed to parse token data: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`)
+        }
+      }
+      
+      console.log('eBay token exchange successful:', {
+        tokenData: parsedTokenData,
+        accessToken: parsedTokenData?.access_token ? 'Present' : 'Missing',
+        refreshToken: parsedTokenData?.refresh_token ? 'Present' : 'Missing',
+        expiresIn: parsedTokenData?.expires_in
+      })
+    } catch (tokenError) {
+      console.error('Token exchange error:', tokenError)
+      throw new Error(`Failed to exchange authorization code for token: ${tokenError instanceof Error ? tokenError.message : 'Unknown token error'}`)
+    }
 
     // Store eBay tokens in database
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        // You might want to add these fields to your User model
-        // ebayAccessToken: tokenData.access_token,
-        // ebayRefreshToken: tokenData.refresh_token,
-        // ebayTokenExpiry: new Date(Date.now() + (tokenData.expires_in * 1000)),
-        updatedAt: new Date()
-      }
-    })
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ebayAccessToken: parsedTokenData.access_token,
+          ebayRefreshToken: parsedTokenData.refresh_token,
+          ebayTokenExpiry: new Date(Date.now() + (parsedTokenData.expires_in * 1000)),
+          ebayConnected: true,
+          updatedAt: new Date()
+        }
+      })
+      
+      console.log('eBay tokens stored successfully for user:', user.id)
+    } catch (dbError) {
+      console.error('Database error storing eBay tokens:', dbError)
+      throw new Error(`Failed to store eBay tokens: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`)
+    }
 
     // Redirect back to the application
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
       : process.env.NODE_ENV === 'production' 
         ? 'https://miraal-store.vercel.app' 
-        : 'http://localhost:3000'
+        : 'https://www.localhost:3001'
     
     return NextResponse.redirect(new URL('/ebay/orders?ebay_connected=true', baseUrl))
     

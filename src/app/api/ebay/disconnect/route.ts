@@ -15,26 +15,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Clear eBay credentials from database
+    // Clear eBay tokens from database
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        // Clear eBay tokens when you add these fields to your User model
-        // ebayAccessToken: null,
-        // ebayRefreshToken: null,
-        // ebayTokenExpiry: null,
+        ebayAccessToken: null,
+        ebayRefreshToken: null,
+        ebayTokenExpiry: null,
+        ebayConnected: false,
         updatedAt: new Date()
       }
     })
 
     return NextResponse.json({
+      success: true,
       message: 'eBay account disconnected successfully'
     })
-    
+
   } catch (error) {
     console.error('eBay disconnect error:', error)
     return NextResponse.json(
-      { error: 'Failed to disconnect eBay account' },
+      { 
+        error: 'Failed to disconnect from eBay',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

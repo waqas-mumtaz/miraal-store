@@ -1,14 +1,23 @@
 import { NextResponse } from 'next/server'
-import { generateUserAuthUrl, getDebugInfo } from '@/lib/ebay-oauth'
+import { generateUserAuthUrl, getDebugInfo, checkEnvironmentVariables } from '@/lib/ebay-oauth'
 
 export async function GET() {
   try {
-    const oauthUrl = generateUserAuthUrl('test-state-123')
+    const envCheck = checkEnvironmentVariables()
     const debugInfo = getDebugInfo()
+    
+    // Try to generate OAuth URL
+    let oauthUrl = null
+    try {
+      oauthUrl = generateUserAuthUrl('test-state-123')
+    } catch (error) {
+      console.error('Error generating OAuth URL:', error)
+    }
     
     return NextResponse.json({
       oauthUrl,
       debugInfo,
+      environmentCheck: envCheck,
       environment: {
         EBAY_APP_ID: process.env.EBAY_APP_ID,
         EBAY_CERT_ID: process.env.EBAY_CERT_ID,
