@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
+  BoxIcon,
   ChevronDownIcon,
   DollarLineIcon,
   GridIcon,
@@ -61,6 +62,14 @@ const navItems: NavItem[] = [
           { name: "Listings", path: "/ebay/listings", pro: false },
           { name: "Analytics", path: "/ebay/analytics", pro: false },
           { name: "Settings", path: "/ebay/settings", pro: false },
+        ],
+      },
+      {
+        name: "Inventory",
+        icon: <BoxIcon />,
+        subItems: [
+          { name: "Products", path: "/inventory/products", pro: false },
+          { name: "Packaging", path: "/inventory/packaging", pro: false },
         ],
       },
 ];
