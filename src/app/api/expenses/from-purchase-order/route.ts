@@ -45,17 +45,16 @@ export async function POST(request: NextRequest) {
         const expense = await prisma.expense.create({
           data: {
             expense_id: expenseData.expense_id,
+            invoice_id: `PO-${purchaseOrder.poNumber}`, // Use PO number as invoice reference
             item_name: expenseData.item_name,
             category: expenseData.category,
             quantity: expenseData.quantity,
             cost: expenseData.cost.toString(),
             unit_price: expenseData.unit_price.toString(),
+            total_cost: (expenseData.cost * expenseData.quantity).toString(), // Calculate total cost
             date: new Date(expenseData.date),
             comment: expenseData.comment,
             userId: user.id,
-            // Add PO reference (you might need to add this field to your schema)
-            po_number: expenseData.po_number,
-            supplier: expenseData.supplier,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
