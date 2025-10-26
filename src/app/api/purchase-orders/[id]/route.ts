@@ -2,9 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Function to update packaging item stock levels when PO is received
+async function updatePackagingStock(items: any[]) {
+  try {
+    for (const item of items) {
+      // Update the packaging item stock
+      await prisma.packagingItem.update({
+        where: { id: item.packagingItemId },
+        data: {
+          stock: {
+            increment: item.quantity, // Add the received quantity to current stock
+          },
+          status: 'ACTIVE', // Ensure item is active if it was out of stock
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log(`Updated stock for ${item.packagingItem.name}: +${item.quantity} units`);
+    }
+  } catch (error) {
+    console.error('Error updating packaging stock:', error);
+    throw error;
+  }
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify user authentication
@@ -18,10 +42,12 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     // Fetch specific purchase order
     const purchaseOrder = await prisma.purchaseOrder.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.id,
       },
       include: {
@@ -57,7 +83,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify user authentication
@@ -71,6 +97,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { status, expectedDelivery, actualDelivery, notes } = body;
 
@@ -82,7 +109,7 @@ export async function PUT(
     // Check if purchase order exists and belongs to user
     const existingPO = await prisma.purchaseOrder.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.id,
       },
     });
@@ -101,8 +128,13 @@ export async function PUT(
     if (actualDelivery) updateData.actualDelivery = new Date(actualDelivery);
     if (notes !== undefined) updateData.notes = notes;
 
+    // If status is being updated to RECEIVED, automatically set actualDelivery
+    if (status === 'RECEIVED' && !actualDelivery) {
+      updateData.actualDelivery = new Date();
+    }
+
     const updatedPO = await prisma.purchaseOrder.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         items: {
@@ -112,6 +144,11 @@ export async function PUT(
         },
       },
     });
+
+    // If status is RECEIVED, update packaging item stock levels
+    if (status === 'RECEIVED') {
+      await updatePackagingStock(updatedPO.items);
+    }
 
     return NextResponse.json({
       success: true,
@@ -133,7 +170,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify user authentication
@@ -147,10 +184,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     // Check if purchase order exists and belongs to user
     const existingPO = await prisma.purchaseOrder.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.id,
       },
     });
@@ -161,7 +200,7 @@ export async function DELETE(
 
     // Delete purchase order (cascade will handle items)
     await prisma.purchaseOrder.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({
