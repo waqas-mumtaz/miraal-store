@@ -20,10 +20,10 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([
     {
       id: '1',
-      name: 'Wireless Bluetooth Headphones',
-      sku: 'WBH-001',
-      category: 'Electronics',
-      price: 99.99,
+      name: 'Chanel No. 5 Eau de Parfum',
+      sku: 'CHN-001',
+      category: 'Perfume',
+      price: 89.99,
       cost: 45.00,
       stock: 25,
       status: 'active',
@@ -32,9 +32,9 @@ export default function ProductsPage() {
     },
     {
       id: '2',
-      name: 'Smart Fitness Watch',
-      sku: 'SFW-002',
-      category: 'Electronics',
+      name: 'La Mer Moisturizing Cream',
+      sku: 'LAM-002',
+      category: 'Skin Care',
       price: 199.99,
       cost: 120.00,
       stock: 0,
@@ -44,15 +44,39 @@ export default function ProductsPage() {
     },
     {
       id: '3',
-      name: 'Organic Cotton T-Shirt',
-      sku: 'OCT-003',
-      category: 'Clothing',
+      name: 'MAC Ruby Woo Lipstick',
+      sku: 'MAC-003',
+      category: 'Makeup',
       price: 29.99,
       cost: 12.00,
       stock: 150,
       status: 'active',
       createdAt: '2024-01-05',
       updatedAt: '2024-01-15'
+    },
+    {
+      id: '4',
+      name: 'Dior Sauvage Eau de Toilette',
+      sku: 'DIO-004',
+      category: 'Perfume',
+      price: 79.99,
+      cost: 40.00,
+      stock: 45,
+      status: 'active',
+      createdAt: '2024-01-12',
+      updatedAt: '2024-01-16'
+    },
+    {
+      id: '5',
+      name: 'The Ordinary Niacinamide Serum',
+      sku: 'ORD-005',
+      category: 'Skin Care',
+      price: 12.99,
+      cost: 6.50,
+      stock: 200,
+      status: 'active',
+      createdAt: '2024-01-08',
+      updatedAt: '2024-01-14'
     }
   ]);
 
@@ -158,10 +182,9 @@ export default function ProductsPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Categories</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Home & Garden">Home & Garden</option>
-              <option value="Sports">Sports</option>
+              <option value="Perfume">Perfume</option>
+              <option value="Skin Care">Skin Care</option>
+              <option value="Makeup">Makeup</option>
             </select>
           </div>
           <div className="flex items-end">
