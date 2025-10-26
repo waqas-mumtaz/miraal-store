@@ -39,6 +39,11 @@ export default function PurchaseOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchPurchaseOrders = async () => {
     setIsLoading(true);
@@ -99,6 +104,50 @@ export default function PurchaseOrdersPage() {
 
   const getTotalItems = (items: PurchaseOrderItem[]) => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  const handleViewPO = (po: PurchaseOrder) => {
+    setSelectedPO(po);
+    setShowViewModal(true);
+  };
+
+  const handleUpdateStatus = (po: PurchaseOrder) => {
+    setSelectedPO(po);
+    setNewStatus(po.status);
+    setShowStatusModal(true);
+  };
+
+  const updatePOStatus = async () => {
+    if (!selectedPO || !newStatus) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/purchase-orders/${selectedPO.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh the purchase orders list
+        await fetchPurchaseOrders();
+        setShowStatusModal(false);
+        setSelectedPO(null);
+        setNewStatus('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to update status');
+      }
+    } catch (error) {
+      setError('Failed to update status');
+      console.error('Error updating status:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -280,8 +329,18 @@ export default function PurchaseOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">View</button>
-                        <button className="text-green-600 hover:text-green-900">Update Status</button>
+                        <button 
+                          onClick={() => handleViewPO(po)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          View
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateStatus(po)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Update Status
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -310,6 +369,174 @@ export default function PurchaseOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* View PO Modal */}
+      {showViewModal && selectedPO && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Purchase Order Details - {selectedPO.poNumber}
+                </h2>
+                <Button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setSelectedPO(null);
+                  }}
+                  variant="outline"
+                  className="text-gray-500"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* PO Information */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 mb-3">Order Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">PO Number:</span>
+                        <span className="font-medium">{selectedPO.poNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        {getStatusBadge(selectedPO.status)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Cost:</span>
+                        <span className="font-medium">€{selectedPO.totalCost.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Order Date:</span>
+                        <span className="font-medium">{formatDate(selectedPO.orderDate)}</span>
+                      </div>
+                      {selectedPO.expectedDelivery && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Expected Delivery:</span>
+                          <span className="font-medium">{formatDate(selectedPO.expectedDelivery)}</span>
+                        </div>
+                      )}
+                      {selectedPO.supplier && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Supplier:</span>
+                          <span className="font-medium">{selectedPO.supplier}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedPO.notes && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-2">Notes</h3>
+                      <p className="text-sm text-gray-600">{selectedPO.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Items List */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 mb-3">Order Items</h3>
+                    <div className="space-y-3">
+                      {selectedPO.items.map((item) => (
+                        <div key={item.id} className="bg-white rounded-lg p-3 border">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{item.packagingItem.name}</h4>
+                              <p className="text-sm text-gray-500 capitalize">{item.packagingItem.type.toLowerCase()}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">€{item.totalCost.toFixed(2)}</p>
+                              <p className="text-sm text-gray-500">{item.quantity} × €{item.unitCost.toFixed(2)}</p>
+                            </div>
+                          </div>
+                          {item.supplier && (
+                            <p className="text-xs text-gray-500 mt-1">Supplier: {item.supplier}</p>
+                          )}
+                          {item.notes && (
+                            <p className="text-xs text-gray-500 mt-1">{item.notes}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Status Modal */}
+      {showStatusModal && selectedPO && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Update Status - {selectedPO.poNumber}
+                </h2>
+                <Button
+                  onClick={() => {
+                    setShowStatusModal(false);
+                    setSelectedPO(null);
+                    setNewStatus('');
+                  }}
+                  variant="outline"
+                  className="text-gray-500"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                    New Status
+                  </label>
+                  <select
+                    id="status"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="RECEIVED">Received</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    onClick={updatePOStatus}
+                    disabled={isUpdating || newStatus === selectedPO.status}
+                    className="flex-1"
+                  >
+                    {isUpdating ? 'Updating...' : 'Update Status'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowStatusModal(false);
+                      setSelectedPO(null);
+                      setNewStatus('');
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
