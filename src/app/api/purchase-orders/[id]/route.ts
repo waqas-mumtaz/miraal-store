@@ -2,77 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// Function to update packaging item stock levels when PO is received
-async function updatePackagingStock(items: any[]) {
-  try {
-    for (const item of items) {
-      // Update the packaging item stock
-      await prisma.packagingItem.update({
-        where: { id: item.packagingItemId },
-        data: {
-          stock: {
-            increment: item.quantity, // Add the received quantity to current stock
-          },
-          status: 'ACTIVE', // Ensure item is active if it was out of stock
-          updatedAt: new Date(),
-        },
-      });
-
-      console.log(`Updated stock for ${item.packagingItem.name}: +${item.quantity} units`);
-    }
-  } catch (error) {
-    console.error('Error updating packaging stock:', error);
-    throw error;
-  }
-}
-
-// Function to create expenses from purchase order when received
-async function createExpensesFromPO(purchaseOrder: any, userId: string) {
-  try {
-    for (const item of purchaseOrder.items) {
-      // Generate unique expense ID
-      const expenseId = `EXP-${purchaseOrder.poNumber}-${item.id.slice(-4)}`;
-      
-      // Check if expense already exists
-      const existingExpense = await prisma.expense.findFirst({
-        where: {
-          expense_id: expenseId,
-          userId: userId,
-        },
-      });
-
-      if (existingExpense) {
-        console.log(`Expense ${expenseId} already exists, skipping...`);
-        continue;
-      }
-
-      // Create expense entry
-      await prisma.expense.create({
-        data: {
-          expense_id: expenseId,
-          invoice_id: purchaseOrder.poNumber,
-          item_name: item.packagingItem.name,
-          category: 'Packaging Materials',
-          quantity: item.quantity,
-          cost: item.unitCost.toString(),
-          unit_price: item.unitCost.toString(),
-          total_cost: item.totalCost.toString(),
-          date: new Date(), // Use current date as expense date
-          comment: `Auto-generated from PO ${purchaseOrder.poNumber} - ${item.packagingItem.name}`,
-          userId: userId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-
-      console.log(`Created expense ${expenseId} for ${item.packagingItem.name}: €${item.totalCost}`);
-    }
-  } catch (error) {
-    console.error('Error creating expenses from PO:', error);
-    throw error;
-  }
-}
-
+// GET - Fetch single purchase order
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -91,18 +21,24 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch specific purchase order
+    // Fetch purchase order with items
     const purchaseOrder = await prisma.purchaseOrder.findFirst({
       where: {
-        id: id,
+        id,
         userId: user.id,
       },
       include: {
         items: {
           include: {
-            packagingItem: true,
-          },
-        },
+            packagingItem: {
+              select: {
+                id: true,
+                name: true,
+                cost: true,
+              }
+            }
+          }
+        }
       },
     });
 
@@ -128,6 +64,7 @@ export async function GET(
   }
 }
 
+// PUT - Update purchase order
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -146,61 +83,115 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { status, expectedDelivery, actualDelivery, notes } = body;
+    const {
+      poNumber,
+      status,
+      supplier,
+      notes,
+      expectedDelivery,
+      items
+    } = body;
 
-    // Validate status if provided
-    if (status && !['PENDING', 'CONFIRMED', 'SHIPPED', 'RECEIVED', 'COMPLETED', 'CANCELLED'].includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    // Validate required fields
+    if (!poNumber) {
+      return NextResponse.json(
+        { error: 'PO Number is required' },
+        { status: 400 }
+      );
     }
 
     // Check if purchase order exists and belongs to user
     const existingPO = await prisma.purchaseOrder.findFirst({
       where: {
-        id: id,
+        id,
         userId: user.id,
       },
     });
 
     if (!existingPO) {
-      return NextResponse.json({ error: 'Purchase order not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Purchase order not found' },
+        { status: 404 }
+      );
     }
 
-    // Update purchase order
-    const updateData: any = {
-      updatedAt: new Date(),
-    };
-
-    if (status) updateData.status = status;
-    if (expectedDelivery) updateData.expectedDelivery = new Date(expectedDelivery);
-    if (actualDelivery) updateData.actualDelivery = new Date(actualDelivery);
-    if (notes !== undefined) updateData.notes = notes;
-
-    // If status is being updated to RECEIVED, automatically set actualDelivery
-    if (status === 'RECEIVED' && !actualDelivery) {
-      updateData.actualDelivery = new Date();
-    }
-
-    const updatedPO = await prisma.purchaseOrder.update({
-      where: { id: id },
-      data: updateData,
-      include: {
-        items: {
-          include: {
-            packagingItem: true,
-          },
-        },
+    // Check if PO number is unique (excluding current PO)
+    const duplicatePO = await prisma.purchaseOrder.findFirst({
+      where: {
+        poNumber,
+        userId: user.id,
+        id: { not: id },
       },
     });
 
-    // If status is RECEIVED, update packaging item stock levels and create expenses
-    if (status === 'RECEIVED') {
-      await updatePackagingStock(updatedPO.items);
-      await createExpensesFromPO(updatedPO, user.id);
+    if (duplicatePO) {
+      return NextResponse.json(
+        { error: 'PO Number already exists' },
+        { status: 400 }
+      );
     }
+
+    // Calculate total cost
+    const totalCost = items ? items.reduce((sum: number, item: any) => sum + (item.totalCost || 0), 0) : 0;
+
+    // Update purchase order
+    const updatedPO = await prisma.purchaseOrder.update({
+      where: { id },
+      data: {
+        poNumber,
+        status: status || 'PENDING',
+        supplier: supplier || null,
+        notes: notes || null,
+        expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : null,
+        totalCost,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Update items if provided
+    if (items && Array.isArray(items)) {
+      // Delete existing items
+      await prisma.purchaseOrderItem.deleteMany({
+        where: { purchaseOrderId: id },
+      });
+
+      // Create new items
+      if (items.length > 0) {
+        await prisma.purchaseOrderItem.createMany({
+          data: items.map((item: any) => ({
+            quantity: item.quantity || 0,
+            unitCost: item.unitCost || 0,
+            totalCost: item.totalCost || 0,
+            supplier: item.supplier || null,
+            notes: item.notes || null,
+            packagingItemId: item.packagingItemId,
+            purchaseOrderId: id,
+          })),
+        });
+      }
+    }
+
+    // Fetch updated purchase order with items
+    const updatedPOWithItems = await prisma.purchaseOrder.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: {
+            packagingItem: {
+              select: {
+                id: true,
+                name: true,
+                cost: true,
+              }
+            }
+          }
+        }
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      data: updatedPO,
+      data: updatedPOWithItems,
       message: 'Purchase order updated successfully'
     });
 
@@ -216,6 +207,7 @@ export async function PUT(
   }
 }
 
+// DELETE - Delete purchase order
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -237,18 +229,29 @@ export async function DELETE(
     // Check if purchase order exists and belongs to user
     const existingPO = await prisma.purchaseOrder.findFirst({
       where: {
-        id: id,
+        id,
         userId: user.id,
       },
     });
 
     if (!existingPO) {
-      return NextResponse.json({ error: 'Purchase order not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Purchase order not found' },
+        { status: 404 }
+      );
     }
 
-    // Delete purchase order (cascade will handle items)
+    // Check if purchase order can be deleted (only PENDING or CANCELLED orders)
+    if (existingPO.status !== 'PENDING' && existingPO.status !== 'CANCELLED') {
+      return NextResponse.json(
+        { error: 'Cannot delete purchase order that is not pending or cancelled' },
+        { status: 400 }
+      );
+    }
+
+    // Delete purchase order (items will be deleted automatically due to cascade)
     await prisma.purchaseOrder.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({

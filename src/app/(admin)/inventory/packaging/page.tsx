@@ -311,10 +311,33 @@ export default function PackagingPage() {
                             Replenish
                           </button>
                         )}
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button 
+                          onClick={() => router.push(`/inventory/packaging/edit/${item.id}`)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
                           Edit
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this packaging item?')) {
+                              try {
+                                const response = await fetch(`/api/packaging/${item.id}`, {
+                                  method: 'DELETE',
+                                });
+                                if (response.ok) {
+                                  fetchPackagingItems(); // Refresh the list
+                                } else {
+                                  const errorData = await response.json();
+                                  alert(`Error: ${errorData.error || 'Failed to delete packaging item'}`);
+                                }
+                              } catch (error) {
+                                console.error('Error deleting packaging item:', error);
+                                alert('Error deleting packaging item. Please try again.');
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
                           Delete
                         </button>
                       </div>

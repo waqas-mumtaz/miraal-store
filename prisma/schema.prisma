@@ -36,6 +36,7 @@ model User {
   plans Plan[]
   packagingItems PackagingItem[]
   purchaseOrders PurchaseOrder[]
+  products Product[]
 
   @@map("users")
 }
@@ -173,6 +174,7 @@ model PackagingItem {
   // Relations
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   purchaseOrderItems PurchaseOrderItem[]
+  products        Product[]
 
   @@map("packaging_items")
 }
@@ -219,6 +221,41 @@ model PurchaseOrderItem {
   @@map("purchase_order_items")
 }
 
+// Product model
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String
+  category    String
+  price       Float
+  cost        Float
+  stock       Int      @default(0)
+  reorderPoint Int     @default(25)
+  status      ProductStatus @default(ACTIVE)
+  description String?
+  brand       String?
+  weight      Float?
+  dimensions  Json?    // { length: number, width: number, height: number }
+  supplier    String?
+  barcode     String?
+  
+  // Packaging integration fields
+  packagingId        String?
+  packagingQuantity  Int?     @default(1)
+  usePackagingCost   Boolean  @default(false)
+  
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packaging   PackagingItem? @relation(fields: [packagingId], references: [id], onDelete: SetNull)
+
+  @@unique([sku, userId])
+  @@map("products")
+}
+
 // Enums
 enum PackagingType {
   BOX
@@ -241,6 +278,12 @@ enum PurchaseOrderStatus {
   RECEIVED
   COMPLETED
   CANCELLED
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
 }
 
 // Role enum

@@ -365,6 +365,35 @@ export default function PurchaseOrdersPage() {
                         >
                           Update Status
                         </button>
+                        <button 
+                          onClick={() => router.push(`/inventory/purchase-orders/edit/${po.id}`)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this purchase order?')) {
+                              try {
+                                const response = await fetch(`/api/purchase-orders/${po.id}`, {
+                                  method: 'DELETE',
+                                });
+                                if (response.ok) {
+                                  fetchPurchaseOrders(); // Refresh the list
+                                } else {
+                                  const errorData = await response.json();
+                                  alert(`Error: ${errorData.error || 'Failed to delete purchase order'}`);
+                                }
+                              } catch (error) {
+                                console.error('Error deleting purchase order:', error);
+                                alert('Error deleting purchase order. Please try again.');
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

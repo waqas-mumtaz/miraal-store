@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/button/Button';
 
 interface Product {
@@ -14,85 +15,58 @@ interface Product {
   status: 'active' | 'inactive' | 'out_of_stock';
   createdAt: string;
   updatedAt: string;
+  // Packaging integration
+  packagingId?: string;
+  packagingQuantity?: number;
+  usePackagingCost?: boolean;
+  packaging?: {
+    id: string;
+    name: string;
+    cost: number;
+  };
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'Chanel No. 5 Eau de Parfum',
-      sku: 'CHN-001',
-      category: 'Perfume',
-      price: 89.99,
-      cost: 45.00,
-      stock: 25,
-      status: 'active',
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20'
-    },
-    {
-      id: '2',
-      name: 'La Mer Moisturizing Cream',
-      sku: 'LAM-002',
-      category: 'Skin Care',
-      price: 199.99,
-      cost: 120.00,
-      stock: 0,
-      status: 'out_of_stock',
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-18'
-    },
-    {
-      id: '3',
-      name: 'MAC Ruby Woo Lipstick',
-      sku: 'MAC-003',
-      category: 'Makeup',
-      price: 29.99,
-      cost: 12.00,
-      stock: 150,
-      status: 'active',
-      createdAt: '2024-01-05',
-      updatedAt: '2024-01-15'
-    },
-    {
-      id: '4',
-      name: 'Dior Sauvage Eau de Toilette',
-      sku: 'DIO-004',
-      category: 'Perfume',
-      price: 79.99,
-      cost: 40.00,
-      stock: 45,
-      status: 'active',
-      createdAt: '2024-01-12',
-      updatedAt: '2024-01-16'
-    },
-    {
-      id: '5',
-      name: 'The Ordinary Niacinamide Serum',
-      sku: 'ORD-005',
-      category: 'Skin Care',
-      price: 12.99,
-      cost: 6.50,
-      stock: 200,
-      status: 'active',
-      createdAt: '2024-01-08',
-      updatedAt: '2024-01-14'
-    }
-  ]);
+  const router = useRouter();
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const params = new URLSearchParams();
+      if (categoryFilter !== 'all') params.append('category', categoryFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (searchTerm) params.append('search', searchTerm);
+
+      const response = await fetch(`/api/products?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.data || []);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to fetch products');
+      }
+    } catch (error) {
+      setError('Failed to fetch products');
+      console.error('Error fetching products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [categoryFilter, statusFilter, searchTerm]);
+
+  // Products are now filtered on the server side
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -136,9 +110,11 @@ export default function ProductsPage() {
           <Button variant="outline">
             Import Products
           </Button>
-          <Button>
-            Add Product
-          </Button>
+                  <Button
+                    onClick={() => router.push('/inventory/products/add')}
+                  >
+                    Add Product
+                  </Button>
         </div>
       </div>
 
@@ -207,11 +183,11 @@ export default function ProductsPage() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            Products ({filteredProducts.length})
+            Products ({products.length})
           </h2>
         </div>
         
-        {filteredProducts.length > 0 ? (
+        {products.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -232,6 +208,9 @@ export default function ProductsPage() {
                     Cost
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Packaging
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Stock
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -243,7 +222,7 @@ export default function ProductsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
@@ -265,6 +244,18 @@ export default function ProductsPage() {
                       <div className="text-sm text-gray-900">
                         €{product.cost.toFixed(2)}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.packaging ? (
+                        <div className="text-sm">
+                          <div className="text-gray-900 font-medium">{product.packaging.name}</div>
+                          <div className="text-gray-500">
+                            €{product.packaging.cost.toFixed(2)} × {product.packagingQuantity || 1}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">No packaging</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStockBadge(product.stock, product.status)}
