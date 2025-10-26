@@ -23,73 +23,43 @@ interface PackagingItem {
 
 export default function PackagingPage() {
   const router = useRouter();
-  const [packagingItems, setPackagingItems] = useState<PackagingItem[]>([
-    {
-      id: '1',
-      name: 'Small Shipping Box',
-      type: 'box',
-      dimensions: { length: 8, width: 6, height: 4 },
-      weight: 0.2,
-      cost: 0.45,
-      stock: 150,
-      status: 'active',
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20'
-    },
-    {
-      id: '2',
-      name: 'Medium Shipping Box',
-      type: 'box',
-      dimensions: { length: 12, width: 9, height: 6 },
-      weight: 0.3,
-      cost: 0.65,
-      stock: 75,
-      status: 'active',
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-18'
-    },
-    {
-      id: '3',
-      name: 'Large Shipping Box',
-      type: 'box',
-      dimensions: { length: 16, width: 12, height: 8 },
-      weight: 0.5,
-      cost: 0.95,
-      stock: 0,
-      status: 'out_of_stock',
-      createdAt: '2024-01-05',
-      updatedAt: '2024-01-15'
-    },
-    {
-      id: '4',
-      name: 'Bubble Mailer Envelope',
-      type: 'envelope',
-      dimensions: { length: 10, width: 7, height: 1 },
-      weight: 0.1,
-      cost: 0.25,
-      stock: 300,
-      status: 'active',
-      createdAt: '2024-01-12',
-      updatedAt: '2024-01-16'
-    },
-    {
-      id: '5',
-      name: 'Protective Poly Bag',
-      type: 'bag',
-      dimensions: { length: 6, width: 4, height: 0.5 },
-      weight: 0.05,
-      cost: 0.15,
-      stock: 500,
-      status: 'active',
-      createdAt: '2024-01-08',
-      updatedAt: '2024-01-14'
-    }
-  ]);
+  const [packagingItems, setPackagingItems] = useState<PackagingItem[]>([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const fetchPackagingItems = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const params = new URLSearchParams();
+      if (typeFilter !== 'all') params.append('type', typeFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (searchTerm) params.append('search', searchTerm);
+
+      const response = await fetch(`/api/packaging?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPackagingItems(data.data || []);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to fetch packaging items');
+      }
+    } catch (error) {
+      setError('Failed to fetch packaging items');
+      console.error('Error fetching packaging items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPackagingItems();
+  }, [typeFilter, statusFilter, searchTerm]);
 
   const filteredItems = packagingItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());

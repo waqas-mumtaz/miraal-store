@@ -31,49 +31,30 @@ export default function ReplenishPackagingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedItems, setSelectedItems] = useState<ReplenishmentItem[]>([]);
 
-  // Sample packaging items (in real app, this would come from API)
-  const [packagingItems] = useState<PackagingItem[]>([
-    {
-      id: '1',
-      name: 'Small Shipping Box',
-      type: 'box',
-      currentStock: 5,
-      cost: 0.45,
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Medium Shipping Box',
-      type: 'box',
-      currentStock: 0,
-      cost: 0.65,
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Large Shipping Box',
-      type: 'box',
-      currentStock: 0,
-      cost: 0.95,
-      status: 'active'
-    },
-    {
-      id: '4',
-      name: 'Bubble Mailer Envelope',
-      type: 'envelope',
-      currentStock: 15,
-      cost: 0.25,
-      status: 'active'
-    },
-    {
-      id: '5',
-      name: 'Protective Poly Bag',
-      type: 'bag',
-      currentStock: 200,
-      cost: 0.15,
-      status: 'active'
+  const [packagingItems, setPackagingItems] = useState<PackagingItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+
+  const fetchPackagingItems = async () => {
+    setIsLoadingItems(true);
+    
+    try {
+      const response = await fetch('/api/packaging');
+      if (response.ok) {
+        const data = await response.json();
+        setPackagingItems(data.data || []);
+      } else {
+        console.error('Failed to fetch packaging items');
+      }
+    } catch (error) {
+      console.error('Error fetching packaging items:', error);
+    } finally {
+      setIsLoadingItems(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchPackagingItems();
+  }, []);
 
   const addToReplenishment = (item: PackagingItem) => {
     const reorderPoint = getReorderPoint(item.type);
@@ -172,10 +153,31 @@ export default function ReplenishPackagingPage() {
         notes: selectedItems.map(item => `${item.name}: ${item.notes}`).filter(note => note).join('; ')
       };
       
-      // Simulate API call to create purchase order
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Purchase Order Created:', purchaseOrder);
+      // Create purchase order via API
+      const response = await fetch('/api/purchase-orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: selectedItems.map(item => ({
+            packagingId: item.packagingId,
+            quantity: item.quantity,
+            unitCost: item.unitCost,
+            supplier: item.supplier,
+            notes: item.notes,
+          })),
+          supplier: selectedItems[0]?.supplier || 'Multiple Suppliers',
+          notes: purchaseOrder.notes,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create purchase order');
+      }
+
+      const orderData = await response.json();
+      console.log('Purchase Order Created:', orderData);
       
       // Create expense entries for each item (when order is confirmed)
       const expenseEntries = selectedItems.map(item => ({

@@ -34,6 +34,8 @@ model User {
   invoices Invoice[]
   expenses Expense[]
   plans Plan[]
+  packagingItems PackagingItem[]
+  purchaseOrders PurchaseOrder[]
 
   @@map("users")
 }
@@ -152,6 +154,94 @@ model AmazonPlanDetails {
   @@map("amazon_plan_details")
 }
 
+// Packaging Item model
+model PackagingItem {
+  id          String   @id @default(cuid())
+  name        String
+  type        PackagingType
+  dimensions  Json     // { length: number, width: number, height: number }
+  weight      Float    // in lbs
+  cost        Float    // cost per unit in euros
+  stock       Int      @default(0)
+  reorderPoint Int     @default(25)
+  status      PackagingStatus @default(ACTIVE)
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@map("packaging_items")
+}
+
+// Purchase Order model
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  poNumber    String   @unique
+  status      PurchaseOrderStatus @default(PENDING)
+  totalCost   Float
+  supplier    String?
+  notes       String?
+  orderDate   DateTime @default(now())
+  expectedDelivery DateTime?
+  actualDelivery DateTime?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+// Purchase Order Item model
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  quantity        Int
+  unitCost        Float
+  totalCost       Float
+  supplier        String?
+  notes           String?
+  packagingItemId String
+  purchaseOrderId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  packagingItem   PackagingItem @relation(fields: [packagingItemId], references: [id], onDelete: Cascade)
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_order_items")
+}
+
+// Enums
+enum PackagingType {
+  BOX
+  ENVELOPE
+  BAG
+  TUBE
+  OTHER
+}
+
+enum PackagingStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  RECEIVED
+  COMPLETED
+  CANCELLED
+}
 
 // Role enum
 enum Role {

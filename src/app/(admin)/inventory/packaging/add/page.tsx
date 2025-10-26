@@ -106,16 +106,28 @@ export default function AddPackagingPage() {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Here you would typically make an API call to save the packaging item
-      console.log('Packaging item data:', formData);
-      
-      // Redirect back to packaging list
-      router.push('/inventory/packaging');
+      const response = await fetch('/api/packaging', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Packaging item created:', data);
+        
+        // Redirect back to packaging list
+        router.push('/inventory/packaging');
+      } else {
+        const errorData = await response.json();
+        console.error('Error creating packaging item:', errorData);
+        alert(`Error: ${errorData.error || 'Failed to create packaging item'}`);
+      }
     } catch (error) {
       console.error('Error saving packaging item:', error);
+      alert('Error saving packaging item. Please try again.');
     } finally {
       setIsLoading(false);
     }
